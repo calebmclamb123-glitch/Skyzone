@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#090914">
+  <meta name="description" content="Join the community, explore digital products, and meet the team.">
+  <title>Skyzone — Community & Digital Store</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
+  <header class="topbar">
+    <a class="brand" href="#"><span class="brand-mark">N</span><span>SKYZONE<span class="brand-dot">.</span></span></a>
+    <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation">☰</button>
+    <nav id="nav">
+      <a href="#home">Home</a><a href="#store">Store</a><a href="#team">Staff</a><a href="#rules">Rules</a><a href="#apply">Applications</a>
+    </nav>
+    <a class="discord-nav" id="discordTop" href="#" target="_blank" rel="noopener">Join Discord <span>↗</span></a>
+  </header>
+
+  <main>
+    <section class="hero section-wrap" id="home">
+      <div class="hero-copy">
+        <div class="eyebrow"><span class="pulse"></span> YOUR COMMUNITY. YOUR SPACE.</div>
+        <h1>More than a<br><span class="gradient-text">community.</span></h1>
+        <p class="hero-lead">A place to connect, create, and find your next favorite digital experience. Meet the team, explore the store, and become part of what's next.</p>
+        <div class="hero-actions"><a class="btn btn-primary" id="discordHero" href="#" target="_blank" rel="noopener">Join the Discord <span>↗</span></a><a class="btn btn-quiet" href="#store">Explore store <span>↓</span></a></div>
+        <div class="hero-proof"><div class="avatar-stack"><i>N</i><i>✦</i><i>+</i></div><span>Find your people. Build something great.</span></div>
+      </div>
+      <div class="hero-art">
+        <div class="orbit orbit-a"></div><div class="orbit orbit-b"></div>
+        <div class="core-card"><div class="core-icon">N</div><div class="core-label">SKYZONE COMMUNITY</div><div class="core-sub">CONNECT · CREATE · PLAY</div><div class="core-bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+        <div class="float-chip chip-top"><span class="chip-dot blue"></span> COMMUNITY ONLINE</div>
+        <div class="float-chip chip-bottom"><span>✦</span> Built around you</div>
+      </div>
+    </section>
+
+    <section class="stats section-wrap">
+      <div><strong>01</strong><span>One community</span></div><div><strong>∞</strong><span>Room to grow</span></div><div><strong>24/7</strong><span>Stay connected</span></div>
+    </section>
+
+    <section class="section-wrap section" id="store">
+      <div class="section-heading"><div><div class="eyebrow">THE MARKETPLACE</div><h2>Explore the <span class="gradient-text">store.</span></h2><p>Digital products and services, all in one place.</p></div><span class="section-tag">DIGITAL GOODS</span></div>
+      <div class="product-grid" id="productGrid"><div class="loading-card">Loading products…</div></div>
+      <p class="fine-print">Digital products and services are delivered according to each product's description. Review the details before purchasing.</p>
+    </section>
+
+    <section class="section-wrap section team-section" id="team">
+      <div class="section-heading"><div><div class="eyebrow">THE PEOPLE BEHIND IT</div><h2>Meet the <span class="gradient-text">team.</span></h2><p>Here to keep the community welcoming and running smoothly.</p></div></div>
+      <div class="team-grid">
+        <article class="staff-card"><div class="staff-avatar owner">N</div><div class="staff-role">OWNER</div><h3>Community Owner</h3><p>Leads the vision and keeps everything moving.</p></article>
+        <article class="staff-card"><div class="staff-avatar admin">✦</div><div class="staff-role">ADMINISTRATION</div><h3>Administrator</h3><p>Helps manage the community and support the team.</p></article>
+        <article class="staff-card"><div class="staff-avatar mod">◆</div><div class="staff-role">MODERATION</div><h3>Moderator</h3><p>Helps make the community a respectful place.</p></article>
+      </div>
+      <p class="fine-print">Replace these sample roles and descriptions with your actual staff members.</p>
+    </section>
+
+    <section class="section-wrap section rules-section" id="rules">
+      <div class="section-heading"><div><div class="eyebrow">KEEP IT RESPECTFUL</div><h2>Community <span class="gradient-text">rules.</span></h2><p>A few basics help make this a good place for everyone.</p></div></div>
+      <div class="rules-list">
+        <article><b>01</b><div><h3>Respect everyone</h3><p>No harassment, hate speech, bullying, or targeted hostility.</p></div></article>
+        <article><b>02</b><div><h3>Keep it appropriate</h3><p>Use the right channels and keep content suitable for the community.</p></div></article>
+        <article><b>03</b><div><h3>No spam or scams</h3><p>Do not flood chat, advertise without permission, or share suspicious links.</p></div></article>
+        <article><b>04</b><div><h3>Listen to staff</h3><p>Follow reasonable moderator instructions and use the appeal process if needed.</p></div></article>
+        <article><b>05</b><div><h3>Protect your account</h3><p>Never share passwords, private information, or payment details in public chat.</p></div></article>
+      </div>
+      <p class="fine-print">These are starter rules. Review and replace them with your official community policy.</p>
+    </section>
+
+    <section class="section-wrap section apply-section" id="apply">
+      <div class="apply-panel"><div><div class="eyebrow">GET INVOLVED</div><h2>Make your mark<br><span class="gradient-text">with us.</span></h2><p>Interested in helping out? Send an application to the team. Tell us a little about yourself and how you'd like to contribute.</p></div>
+        <form id="applicationForm" class="application-form">
+          <label>Your name / Discord username<input name="username" required maxlength="80" placeholder="How should we know you?"></label>
+          <label>Application type<select name="type"><option>Staff application</option><option>Partnership application</option><option>Other</option></select></label>
+          <label>Why are you applying?<textarea name="message" required maxlength="1500" rows="4" placeholder="Share a little about yourself…"></textarea></label>
+          <button class="btn btn-primary" type="submit">Prepare application <span>↗</span></button>
+          <small id="formNote">This opens your email app with the application ready to send. Set your contact email in app.js.</small>
+        </form>
+      </div>
+    </section>
+
+    <section class="section-wrap join-banner"><div><div class="eyebrow">YOUR NEXT CHAPTER STARTS HERE</div><h2>We'll see you <span class="gradient-text">inside.</span></h2></div><a class="btn btn-primary" id="discordBottom" href="#" target="_blank" rel="noopener">Join Discord ↗</a></section>
+  </main>
+
+  <footer class="footer"><a class="brand" href="#"><span class="brand-mark">N</span><span>SKYZONE<span class="brand-dot">.</span></span></a><span>© <span id="year"></span> Skyzone Community. All rights reserved.</span><span>Built for the community.</span></footer>
+  <script src="/app.js"></script>
+</body>
+</html>

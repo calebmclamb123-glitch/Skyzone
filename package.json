@@ -1,0 +1,14 @@
+{
+  "name": "skyzone-community-site",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Gaming community website with digital store, Discord links, applications and Stripe checkout starter",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  }
+}
