@@ -33,7 +33,7 @@ app.use(express.json({ limit: "100kb" }));
 app.use(express.static(path.join(__dirname, "..", "public")));
 
 app.get("/api/config", (req, res) => {
-  res.json({ discordInviteUrl: process.env.DISCORD_INVITE_URL || "#" });
+  res.json({ discordInviteUrl: process.env.DISCORD_INVITE_URL || "https://discord.gg/QVR7E9jgUN" });
 });
 app.get("/api/products", (req, res) => {
   res.json(readJson(PRODUCTS_FILE, starterProducts).filter(p => p.active));
