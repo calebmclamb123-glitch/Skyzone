@@ -492,3 +492,5 @@ body{
 .member-list-empty{font-size:11px;color:#949ba4;line-height:1.5;padding:8px}
 @media(max-width:1050px){.discord-chat{grid-template-columns:62px 205px minmax(0,1fr)}.server-member-sidebar{display:none}}
 @media(max-width:680px){.discord-chat{grid-template-columns:54px 155px minmax(0,1fr);min-height:590px}.chat-server-sidebar{padding:0 5px}.chat-main{padding:0 9px 10px}.chat-header-tools .chat-live{display:none}.chat-main-header{gap:5px}.chat-header-tools input{width:95px}}
+
+.channel-category{margin-top:15px}.channel-category-heading{display:flex;align-items:center;justify-content:space-between;padding:0 6px 5px;color:#949ba4;font-size:10px;font-weight:800;letter-spacing:.55px}.channel-category-heading button{border:0;background:transparent;color:#949ba4;font-size:18px;line-height:18px;cursor:pointer;opacity:0}.channel-category:hover .channel-category-heading button{opacity:1}.channel-category-heading button:hover{color:#f2f3f5}.channel-category-items{display:grid;gap:1px}
