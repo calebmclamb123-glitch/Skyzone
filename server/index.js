@@ -126,7 +126,7 @@ function verifyMemberSession(req) {
     return member ? publicMember(member) : null;
   } catch { return null; }
 }
-function publicMember(member) { return { id: member.id, username: member.username, avatar: member.avatar || "", banner: member.banner || "", about: member.about || "", status: member.status || "", settings: { showOnline: member.settings?.showOnline !== false, allowFriendRequests: member.settings?.allowFriendRequests !== false, allowFriendDMs: member.settings?.allowFriendDMs !== false, friendAlerts: member.settings?.friendAlerts !== false, dmAlerts: member.settings?.dmAlerts !== false } }; }
+function publicMember(member) { return { id: member.id, username: member.username, avatar: member.avatar || "", banner: member.banner || "", about: member.about || "", status: member.status || "", connections: { xbox: member.connections?.xbox || "", xboxUrl: member.connections?.xboxUrl || "", spotifyUrl: member.connections?.spotifyUrl || "", listening: member.connections?.listening || "", tiktokUrl: member.connections?.tiktokUrl || "", youtubeUrl: member.connections?.youtubeUrl || "" }, settings: { showOnline: member.settings?.showOnline !== false, allowFriendRequests: member.settings?.allowFriendRequests !== false, allowFriendDMs: member.settings?.allowFriendDMs !== false, friendAlerts: member.settings?.friendAlerts !== false, dmAlerts: member.settings?.dmAlerts !== false } }; }
 function requireMember(req, res, next) {
   const member = verifyMemberSession(req);
   if (!member) return res.status(401).json({ error: "Create an account or sign in to use Skyzone chat." });
@@ -205,9 +205,13 @@ app.put("/api/members/profile", requireMember, (req, res) => {
   const username = safeMemberName(req.body.username);
   const about = String(req.body.about || "").trim().slice(0, 160);
   const status = String(req.body.status || "").trim().slice(0, 32);
+  const cleanLink = value => { const raw = String(value || "").trim().slice(0, 300); if (!raw) return ""; try { const url = new URL(raw); return ["https:", "http:"].includes(url.protocol) ? url.toString() : ""; } catch { return ""; } };
+  const previousConnections = members[index].connections || {};
+  const incomingConnections = req.body.connections && typeof req.body.connections === "object" ? req.body.connections : {};
+  const connections = { xbox: String(incomingConnections.xbox ?? previousConnections.xbox ?? "").trim().slice(0, 32), xboxUrl: cleanLink(incomingConnections.xboxUrl ?? previousConnections.xboxUrl), spotifyUrl: cleanLink(incomingConnections.spotifyUrl ?? previousConnections.spotifyUrl), listening: String(incomingConnections.listening ?? previousConnections.listening ?? "").trim().slice(0, 100), tiktokUrl: cleanLink(incomingConnections.tiktokUrl ?? previousConnections.tiktokUrl), youtubeUrl: cleanLink(incomingConnections.youtubeUrl ?? previousConnections.youtubeUrl) };
   if (username.length < 3) return res.status(400).json({ error: "Display name must be at least 3 characters." });
   if (members.some(m => m.id !== req.member.id && m.username.toLowerCase() === username.toLowerCase())) return res.status(409).json({ error: "That display name is already taken." });
-  members[index].username = username; members[index].about = about; members[index].status = status;
+  members[index].username = username; members[index].about = about; members[index].status = status; members[index].connections = connections;
   writeJson(MEMBERS_FILE, members);
   res.json(publicMember(members[index]));
 });
