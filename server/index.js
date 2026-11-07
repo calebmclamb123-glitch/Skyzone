@@ -126,7 +126,7 @@ function verifyMemberSession(req) {
     return member ? publicMember(member) : null;
   } catch { return null; }
 }
-function publicMember(member) { return { id: member.id, username: member.username, avatar: member.avatar || "", banner: member.banner || "", about: member.about || "", status: member.status || "", connections: { xbox: member.connections?.xbox || "", xboxUrl: member.connections?.xboxUrl || "", spotifyUrl: member.connections?.spotifyUrl || "", listening: member.connections?.listening || "", tiktokUrl: member.connections?.tiktokUrl || "", youtubeUrl: member.connections?.youtubeUrl || "" }, settings: { showOnline: member.settings?.showOnline !== false, allowFriendRequests: member.settings?.allowFriendRequests !== false, allowFriendDMs: member.settings?.allowFriendDMs !== false, friendAlerts: member.settings?.friendAlerts !== false, dmAlerts: member.settings?.dmAlerts !== false } }; }
+function publicMember(member) { return { id: member.id, username: member.username, role: allowedEmails.includes(String(member.email || "").toLowerCase()) ? "Owner" : "Member", avatar: member.avatar || "", banner: member.banner || "", about: member.about || "", status: member.status || "", connections: { xbox: member.connections?.xbox || "", xboxUrl: member.connections?.xboxUrl || "", spotifyUrl: member.connections?.spotifyUrl || "", listening: member.connections?.listening || "", tiktokUrl: member.connections?.tiktokUrl || "", youtubeUrl: member.connections?.youtubeUrl || "" }, settings: { showOnline: member.settings?.showOnline !== false, allowFriendRequests: member.settings?.allowFriendRequests !== false, allowFriendDMs: member.settings?.allowFriendDMs !== false, friendAlerts: member.settings?.friendAlerts !== false, dmAlerts: member.settings?.dmAlerts !== false } }; }
 function requireMember(req, res, next) {
   const member = verifyMemberSession(req);
   if (!member) return res.status(401).json({ error: "Create an account or sign in to use Skyzone chat." });
@@ -442,7 +442,7 @@ app.post("/api/chat", requireMember, (req, res) => {
   if (!body && !attachment) return res.status(400).json({ error: "Write a message or attach an image/GIF." });
   if (req.body.attachment && !attachment) return res.status(400).json({ error: "Images and GIFs must be PNG, JPG, WEBP, or GIF and no larger than 8 MB." });
   if (channelId === "announcements") return res.status(403).json({ error: "Only community staff can post announcements. Use #general or #media." });
-  const message = { id: crypto.randomUUID(), channelId, memberId: req.member.id, name: req.member.username, avatar: req.member.avatar || "", body, attachment: attachment || "", reactions: {}, replyTo: String(req.body.replyTo || "").slice(0, 80), editedAt: "", createdAt: new Date().toISOString() };
+  const message = { id: crypto.randomUUID(), channelId, memberId: req.member.id, name: req.member.username, role: req.member.role || "Member", avatar: req.member.avatar || "", body, attachment: attachment || "", reactions: {}, replyTo: String(req.body.replyTo || "").slice(0, 80), editedAt: "", createdAt: new Date().toISOString() };
   const messages = readJson(CHAT_FILE, []); messages.push(message); writeJson(CHAT_FILE, messages.slice(-500));
   res.status(201).json(message);
 });
