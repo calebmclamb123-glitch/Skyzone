@@ -14,10 +14,10 @@
 <body>
   <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
   <header class="topbar">
-    <a class="brand" href="#"><span class="brand-mark">N</span><span>SKYZONE<span class="brand-dot">.</span></span></a>
+    <a class="brand" href="#"><span class="brand-mark">S</span><span>SKYZONE<span class="brand-dot">.</span></span></a>
     <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation">☰</button>
     <nav id="nav">
-      <a href="#home">Home</a><a href="#store">Store</a><a href="#team">Staff</a><a href="#rules">Rules</a><a href="#apply">Applications</a>
+      <a href="#home">Home</a><a href="#store">Store</a><a href="#community">Announcements</a><a href="#team">Staff</a><a href="#rules">Rules</a><a href="#apply">Applications</a>
     </nav>
     <a class="discord-nav" id="discordTop" href="#" target="_blank" rel="noopener">Join Discord <span>↗</span></a>
   </header>
@@ -31,16 +31,27 @@
         <div class="hero-actions"><a class="btn btn-primary" id="discordHero" href="#" target="_blank" rel="noopener">Join the Discord <span>↗</span></a><a class="btn btn-quiet" href="#store">Explore store <span>↓</span></a></div>
         <div class="hero-proof"><div class="avatar-stack"><i>N</i><i>✦</i><i>+</i></div><span>Find your people. Build something great.</span></div>
       </div>
-      <div class="hero-art">
-        <div class="orbit orbit-a"></div><div class="orbit orbit-b"></div>
-        <div class="core-card"><div class="core-icon">N</div><div class="core-label">SKYZONE COMMUNITY</div><div class="core-sub">CONNECT · CREATE · PLAY</div><div class="core-bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
-        <div class="float-chip chip-top"><span class="chip-dot blue"></span> COMMUNITY ONLINE</div>
-        <div class="float-chip chip-bottom"><span>✦</span> Built around you</div>
+      <div class="hero-art hero-image-wrap">
+        <img class="hero-image" src="/skyzone-banner.png" alt="Skyzone Minecraft community artwork" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'">
+        <div class="hero-image-fallback"><div class="core-card"><div class="core-icon">S</div><div class="core-label">SKYZONE COMMUNITY</div><div class="core-sub">CONNECT · CREATE · PLAY</div></div></div>
+        <div class="float-chip chip-top"><span class="chip-dot blue"></span> SKYZONE COMMUNITY</div>
+        <a class="float-chip chip-bottom" href="https://discord.gg/QVR7E9jgUN" target="_blank" rel="noopener"><span>✦</span> Join our Discord ↗</a>
       </div>
     </section>
 
     <section class="stats section-wrap">
       <div><strong>01</strong><span>One community</span></div><div><strong>∞</strong><span>Room to grow</span></div><div><strong>24/7</strong><span>Stay connected</span></div>
+    </section>
+
+    <section class="section-wrap section community-section" id="community">
+      <div class="section-heading"><div><div class="eyebrow">WHAT'S HAPPENING</div><h2>Community <span class="gradient-text">updates.</span></h2><p>Announcements, news, and ways to join the conversation.</p></div><a class="btn btn-primary" href="https://discord.gg/QVR7E9jgUN" target="_blank" rel="noopener">Open Discord chat ↗</a></div>
+      <div class="community-layout">
+        <div class="announcement-feed">
+          <article class="announcement-card"><div class="announcement-meta"><span class="announcement-dot"></span> SKYZONE ANNOUNCEMENT <span>WELCOME</span></div><h3>Welcome to Skyzone</h3><p>Our community hub is here. Join the Discord to chat with members, get announcements, and stay up to date with what's happening.</p><a href="https://discord.gg/QVR7E9jgUN" target="_blank" rel="noopener">Join the conversation ↗</a></article>
+          <article class="announcement-card"><div class="announcement-meta"><span class="announcement-dot blue"></span> COMMUNITY NEWS <span>DISCORD</span></div><h3>Announcements live in Discord</h3><p>For the latest updates and real-time community chat, head to our official Discord server.</p><a href="https://discord.gg/QVR7E9jgUN" target="_blank" rel="noopener">View Skyzone Discord ↗</a></article>
+        </div>
+        <aside class="discord-panel"><div class="discord-symbol">◈</div><div class="eyebrow">OFFICIAL COMMUNITY</div><h3>Chat with us on Discord.</h3><p>Meet other members, talk with the team, and catch announcements as they happen.</p><a class="btn btn-primary" href="https://discord.gg/QVR7E9jgUN" target="_blank" rel="noopener">Join Skyzone ↗</a><small>Opens the official Skyzone Discord invite.</small></aside>
+      </div>
     </section>
 
     <section class="section-wrap section" id="store">
