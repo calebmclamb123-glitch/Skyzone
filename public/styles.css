@@ -119,3 +119,36 @@
 .chat-main .chat-form .btn{width:38px;height:38px;padding:0;border-radius:8px}
 .chat-main .chat-status{color:#949ba4;font-size:9px;margin:7px 0 0}
 @media(max-width:650px){.discord-chat{grid-template-columns:1fr}.chat-server-sidebar{min-height:0;padding:0 10px 9px}.chat-server-title{height:48px}.chat-sidebar-label,.chat-channel:not(.active),.voice-label,.chat-sidebar-note,.chat-sidebar-footer{display:none}.chat-channel.active{width:auto;display:inline-flex;margin:8px 0 0}.chat-main{padding:0 11px 10px}.chat-main .chat-form{grid-template-columns:minmax(0,1fr) auto}.chat-main .chat-form .chat-name-input{grid-column:1/-1;grid-row:2;width:100%}.chat-main .chat-form .btn{grid-column:2;grid-row:1}}
+
+
+/* Skyzone member accounts and media */
+.member-auth{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:12px;margin:12px 0;border:1px solid #454750;border-radius:9px;background:#2b2d31}
+.member-auth-copy{display:grid;gap:4px;flex:1 1 180px}
+.member-auth-copy b{font-size:12px;color:#f2f3f5}
+.member-auth-copy span{font-size:10px;color:#b5bac1;line-height:1.4}
+.member-auth-actions{display:flex;gap:5px}
+.auth-tab,.auth-logout{border:1px solid #4b4e57;border-radius:7px;background:#383a40;color:#c9ccd1;padding:8px 10px;font:600 10px var(--font);cursor:pointer}
+.auth-tab.active{background:#5865f2;border-color:#5865f2;color:white}
+.member-auth-form{display:flex;flex-wrap:wrap;gap:7px;width:100%}
+.member-auth-form input{flex:1 1 145px;min-width:0;border:1px solid #4b4e57;background:#1e1f22;color:#f2f3f5;border-radius:7px;padding:10px;font:11px var(--font)}
+.member-auth-form input:focus{outline:1px solid #5865f2}
+.member-auth-form .btn{padding:9px 13px;font-size:10px}
+.member-profile{display:flex;align-items:center;gap:10px;padding:9px 12px;margin:12px 0;border:1px solid #454750;border-radius:9px;background:#2b2d31}
+.member-profile-left{display:flex;align-items:center;gap:9px;flex:1;min-width:0}
+.member-profile-left img{width:34px;height:34px;object-fit:cover;border-radius:50%;background:#5865f2}
+.member-profile-left b,.member-profile-left small{display:block}
+.member-profile-left b{font-size:11px;color:#f2f3f5}
+.member-profile-left small{font-size:9px;color:#b5bac1;margin-top:3px}
+.avatar-upload-label{position:relative;overflow:hidden;border:1px solid #4b4e57;border-radius:7px;padding:8px 10px;color:#c9ccd1;font-size:10px;cursor:pointer}
+.avatar-upload-label input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.auth-logout{font-size:10px}
+.chat-main .chat-attach-button{width:34px;height:34px;display:grid;place-items:center;border-radius:50%;background:#454750;color:#f2f3f5;font-size:21px;cursor:pointer;position:relative;overflow:hidden}
+.chat-attach-button input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.chat-main .chat-form{grid-template-columns:34px minmax(0,1fr) 38px}
+.chat-attachment-name{grid-column:2/-1;color:#b5bac1;font-size:9px;overflow-wrap:anywhere}
+.chat-avatar{overflow:hidden}
+.chat-avatar-image{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.chat-image-link{display:inline-block;margin-top:7px;max-width:min(330px,100%)}
+.chat-image-attachment{display:block;max-width:100%;max-height:230px;object-fit:contain;border-radius:8px;border:1px solid #454750}
+.admin-upload-link{display:inline-block;margin-top:7px;color:#b9a3ff;font-size:10px;font-weight:700}
+@media(max-width:600px){.member-auth{align-items:flex-start}.member-auth-actions{width:100%}.member-auth-form{display:grid;grid-template-columns:1fr}.member-profile{flex-wrap:wrap}.chat-main .chat-form{grid-template-columns:34px minmax(0,1fr) 38px}}
