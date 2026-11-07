@@ -13,7 +13,7 @@ The admin page is `/admin.html`. Owner access is granted only after Google verif
    - `GOOGLE_CLIENT_ID`: the Google OAuth Web client ID.
    - `SESSION_SECRET`: a random private string at least 32 characters long.
    - `ADMIN_EMAILS`: `calebmclamb123@gmail.com,calebmclamb19@gmail.com` (already the server default).
-5. Save and redeploy. Open `/admin.html`, choose the correct Google account, and Google will grant owner access only to the two allowlisted verified addresses.
+5. Save and redeploy. Open `/admin.html` (or choose Admin in the website navigation), choose the correct Google account, and Google will grant owner access only to the two allowlisted verified addresses. The Admin page requires `GOOGLE_CLIENT_ID` and `SESSION_SECRET`; a normal Skyzone member login does not grant admin access.
 
 Do not put OAuth client secrets or session secrets in GitHub or public chat. This implementation uses Google Identity Services ID-token verification; it does not ask for or store Google passwords.
 
@@ -27,14 +27,14 @@ The Friends & DMs panel supports username-based friend requests, accepting or ig
 
 The app stores its JSON data under `server/data` by default. Render's filesystem can be ephemeral, so **do not rely on the default location for production accounts or chat history**.
 
-For a Render persistent disk:
+Important: changing website code alone cannot make account data permanent. Render may erase files stored on the service filesystem during deploys/restarts. For a Render persistent disk:
 1. Open the Skyzone service in Render and add a persistent disk.
 2. Choose a mount path such as `/var/data`.
 3. In the service's Environment settings, add `DATA_DIR` with the value `/var/data`.
 4. Set `SESSION_SECRET` to a private random value at least 32 characters long. Keep it out of GitHub.
 5. Save and redeploy. Keep the disk mounted at the same path on future deploys.
 
-This makes the existing JSON storage use the persistent disk; it is a practical interim step, not a substitute for a database when the community grows. Uploaded images are currently stored as data URLs in JSON, so a database plus object storage is the better long-term design.
+After setting `DATA_DIR=/var/data`, redeploy and keep the disk attached to the same service. Existing data stored on the old ephemeral filesystem will not automatically move to the disk; accounts created before setup may need to register again unless you export and migrate the old JSON files first. This makes the existing JSON storage use the persistent disk; it is a practical interim step, not a substitute for a database when the community grows. Uploaded images are currently stored as data URLs in JSON, so a database plus object storage is the better long-term design.
 
 ## Run locally
 
@@ -54,6 +54,6 @@ Official Skyzone invite: `https://discord.gg/QVR7E9jgUN`.
 
 ## Member accounts and chat media
 
-Visitors can create a free account with a username, email, and password, then sign in to chat. Passwords are stored as scrypt hashes, not plain text. Members can upload a PNG, JPG, WEBP, or GIF profile picture (400 KB maximum), and attach images/GIFs to chat messages (700 KB maximum). The owner dashboard includes a protected file library for PNG, JPG, WEBP, GIF, PDF, and TXT uploads up to 2 MB.
+Visitors can create a free account with a username, email, and password, then sign in to chat. Passwords are stored as scrypt hashes, not plain text. Members can upload a PNG, JPG, WEBP, or GIF profile picture (400 KB maximum), and attach images/GIFs to chat messages (700 KB maximum). The owner dashboard includes registered-member viewing, chat moderation, and a protected file library for PNG, JPG, WEBP, GIF, PDF, and TXT uploads up to 2 MB.
 
 The session signing key is generated automatically and stored in the app data directory when `SESSION_SECRET` is not supplied. For a production launch, configure a persistent `SESSION_SECRET` in Render and move member records, chat history, and uploads to persistent database/object storage. **Render's free service filesystem is ephemeral**, so locally stored accounts, profile pictures, chat attachments, and owner uploads can be lost when the service is redeployed or its instance is replaced. Do not treat the current local-JSON storage as permanent user-account storage.
