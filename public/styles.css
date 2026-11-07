@@ -197,3 +197,5 @@
 .dm-messages{max-height:180px;overflow:auto;display:grid;gap:7px}.dm-message{max-width:85%;padding:8px;border-radius:7px;background:#383a40}.dm-message.mine{justify-self:end;background:#41466b}.dm-message p{font-size:10px;margin:0;white-space:pre-wrap;overflow-wrap:anywhere}.dm-message small{display:block;font-size:8px;color:#aeb4bc;margin-top:4px}
 .dm-form{display:flex;gap:7px;margin-top:8px}
 @media(max-width:600px){.friends-columns{flex-direction:column}.add-friend-form{flex-wrap:wrap}.add-friend-form input{flex-basis:100%}}
+
+#onlineMemberCount{font-size:10px;color:#b5bac1}
