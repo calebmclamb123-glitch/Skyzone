@@ -126,7 +126,7 @@ function verifyMemberSession(req) {
     return member ? publicMember(member) : null;
   } catch { return null; }
 }
-function publicMember(member) { return { id: member.id, username: member.username, avatar: member.avatar || "", about: member.about || "", status: member.status || "", settings: { showOnline: member.settings?.showOnline !== false, allowFriendRequests: member.settings?.allowFriendRequests !== false, allowFriendDMs: member.settings?.allowFriendDMs !== false, friendAlerts: member.settings?.friendAlerts !== false, dmAlerts: member.settings?.dmAlerts !== false } }; }
+function publicMember(member) { return { id: member.id, username: member.username, avatar: member.avatar || "", banner: member.banner || "", about: member.about || "", status: member.status || "", settings: { showOnline: member.settings?.showOnline !== false, allowFriendRequests: member.settings?.allowFriendRequests !== false, allowFriendDMs: member.settings?.allowFriendDMs !== false, friendAlerts: member.settings?.friendAlerts !== false, dmAlerts: member.settings?.dmAlerts !== false } }; }
 function requireMember(req, res, next) {
   const member = verifyMemberSession(req);
   if (!member) return res.status(401).json({ error: "Create an account or sign in to use Skyzone chat." });
@@ -148,7 +148,7 @@ function rateLimit(map, key, max, windowMs) {
   recent.push(now); map.set(key, recent); return true;
 }
 
-app.use(express.json({ limit: "16mb" }));
+app.use(express.json({ limit: "28mb" }));
 app.use(express.static(path.join(__dirname, "..", "public")));
 
 app.get("/api/config", (req, res) => {
@@ -223,13 +223,30 @@ app.put("/api/members/settings", requireMember, (req, res) => {
 });
 
 app.put("/api/members/avatar", requireMember, (req, res) => {
-  const avatar = cleanImageData(req.body.avatar, 5 * 1024 * 1024);
-  if (!avatar) return res.status(400).json({ error: "Upload a PNG, JPG, WEBP, or GIF up to 5 MB." });
+  const avatar = cleanImageData(req.body.avatar, 10 * 1024 * 1024);
+  if (!avatar) return res.status(400).json({ error: "Upload a PNG, JPG, WEBP, or GIF up to 10 MB." });
   const members = readJson(MEMBERS_FILE, []);
   const index = members.findIndex(m => m.id === req.member.id);
   if (index < 0) return res.status(404).json({ error: "Account not found." });
   members[index].avatar = avatar; writeJson(MEMBERS_FILE, members);
   res.json({ avatar });
+});
+
+app.put("/api/members/banner", requireMember, (req, res) => {
+  const banner = cleanImageData(req.body.banner, 10 * 1024 * 1024);
+  if (!banner) return res.status(400).json({ error: "Upload a PNG, JPG, WEBP, or GIF up to 10 MB." });
+  const members = readJson(MEMBERS_FILE, []);
+  const index = members.findIndex(m => m.id === req.member.id);
+  if (index < 0) return res.status(404).json({ error: "Account not found." });
+  members[index].banner = banner; writeJson(MEMBERS_FILE, members);
+  res.json({ banner });
+});
+app.delete("/api/members/banner", requireMember, (req, res) => {
+  const members = readJson(MEMBERS_FILE, []);
+  const index = members.findIndex(m => m.id === req.member.id);
+  if (index < 0) return res.status(404).json({ error: "Account not found." });
+  members[index].banner = ""; writeJson(MEMBERS_FILE, members);
+  res.json({ banner: "" });
 });
 
 app.delete("/api/members/avatar", requireMember, (req, res) => {
