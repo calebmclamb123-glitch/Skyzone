@@ -152,3 +152,18 @@
 .chat-image-attachment{display:block;max-width:100%;max-height:230px;object-fit:contain;border-radius:8px;border:1px solid #454750}
 .admin-upload-link{display:inline-block;margin-top:7px;color:#b9a3ff;font-size:10px;font-weight:700}
 @media(max-width:600px){.member-auth{align-items:flex-start}.member-auth-actions{width:100%}.member-auth-form{display:grid;grid-template-columns:1fr}.member-profile{flex-wrap:wrap}.chat-main .chat-form{grid-template-columns:34px minmax(0,1fr) 38px}}
+
+
+/* Site-wide Skyzone account area */
+.account-section{padding-top:30px;padding-bottom:12px}
+.account-heading{margin:0 0 18px}
+.account-heading h2{font:700 clamp(28px,3.5vw,38px)/1.1 var(--display);letter-spacing:-1.4px;margin:10px 0}
+.account-heading p{color:var(--muted);font-size:12px;margin:0}
+.account-section .member-auth,.account-section .member-profile{max-width:760px;margin:0;border-color:#454750;background:linear-gradient(145deg,#17172d,#10101f)}
+.account-section .member-auth{padding:18px}
+.account-section .member-auth-copy b{font-size:14px}
+.account-section .member-auth-copy span{font-size:11px}
+.account-section .member-auth-form input{min-width:180px}
+.account-section .member-profile{padding:14px 16px}
+.chat-signin-notice{padding:11px 12px;margin:12px 0;border:1px solid #454750;border-radius:8px;background:#2b2d31;color:#c8cbd0;font-size:11px;line-height:1.5}
+@media(max-width:650px){.account-section{padding-top:22px}.account-section .member-auth-form{display:grid;grid-template-columns:1fr}.account-section .member-auth-form input{width:100%}}
