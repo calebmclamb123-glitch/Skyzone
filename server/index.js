@@ -146,7 +146,7 @@ function rateLimit(map, key, max, windowMs) {
   recent.push(now); map.set(key, recent); return true;
 }
 
-app.use(express.json({ limit: "5mb" }));
+app.use(express.json({ limit: "16mb" }));
 app.use(express.static(path.join(__dirname, "..", "public")));
 
 app.get("/api/config", (req, res) => {
@@ -221,8 +221,8 @@ app.put("/api/members/settings", requireMember, (req, res) => {
 });
 
 app.put("/api/members/avatar", requireMember, (req, res) => {
-  const avatar = cleanImageData(req.body.avatar, 400 * 1024);
-  if (!avatar) return res.status(400).json({ error: "Upload a PNG, JPG, WEBP, or GIF smaller than 400 KB." });
+  const avatar = cleanImageData(req.body.avatar, 5 * 1024 * 1024);
+  if (!avatar) return res.status(400).json({ error: "Upload a PNG, JPG, WEBP, or GIF up to 5 MB." });
   const members = readJson(MEMBERS_FILE, []);
   const index = members.findIndex(m => m.id === req.member.id);
   if (index < 0) return res.status(404).json({ error: "Account not found." });
@@ -381,9 +381,9 @@ app.post("/api/chat", requireMember, (req, res) => {
   const body = String(req.body.body || "").trim().slice(0, 500);
   const channelId = String(req.body.channelId || "general");
   if (!COMMUNITY_CHANNELS.some(c => c.id === channelId)) return res.status(400).json({ error: "Choose a valid channel." });
-  const attachment = cleanImageData(req.body.attachment, 700 * 1024);
+  const attachment = cleanImageData(req.body.attachment, 8 * 1024 * 1024);
   if (!body && !attachment) return res.status(400).json({ error: "Write a message or attach an image/GIF." });
-  if (req.body.attachment && !attachment) return res.status(400).json({ error: "Images and GIFs must be PNG, JPG, WEBP, or GIF and smaller than 700 KB." });
+  if (req.body.attachment && !attachment) return res.status(400).json({ error: "Images and GIFs must be PNG, JPG, WEBP, or GIF and no larger than 8 MB." });
   if (channelId === "announcements") return res.status(403).json({ error: "Only community staff can post announcements. Use #general or #media." });
   const message = { id: crypto.randomUUID(), channelId, memberId: req.member.id, name: req.member.username, avatar: req.member.avatar || "", body, attachment: attachment || "", reactions: {}, replyTo: String(req.body.replyTo || "").slice(0, 80), editedAt: "", createdAt: new Date().toISOString() };
   const messages = readJson(CHAT_FILE, []); messages.push(message); writeJson(CHAT_FILE, messages.slice(-500));
@@ -431,7 +431,7 @@ app.post("/api/admin/uploads", requireAdmin, (req, res) => {
   const type = match[1].toLowerCase();
   const allowed = ["image/png","image/jpeg","image/webp","image/gif","application/pdf","text/plain"];
   const bytes = Buffer.from(match[2], "base64");
-  if (!allowed.includes(type) || !bytes.length || bytes.length > 2 * 1024 * 1024) return res.status(400).json({ error: "Allowed: PNG, JPG, WEBP, GIF, PDF, or TXT up to 2 MB." });
+  if (!allowed.includes(type) || !bytes.length || bytes.length > 10 * 1024 * 1024) return res.status(400).json({ error: "Allowed: PNG, JPG, WEBP, GIF, PDF, or TXT up to 10 MB." });
   const uploads = readJson(UPLOADS_FILE, []);
   if (uploads.length >= 50) return res.status(400).json({ error: "The upload library is full (50 files maximum)." });
   const item = { id: crypto.randomUUID(), name, type, data, size: bytes.length, createdAt: new Date().toISOString() };
