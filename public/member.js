@@ -102,3 +102,26 @@ const messageInput=chatForm.elements.body;
 function wrapMessageSelection(marker){const start=messageInput.selectionStart,end=messageInput.selectionEnd;const selected=messageInput.value.slice(start,end);messageInput.setRangeText(marker+selected+marker,start,end,'select');messageInput.focus()}
 document.querySelectorAll('[data-format]').forEach(button=>button.addEventListener('click',()=>wrapMessageSelection(button.dataset.format)));
 messageInput.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='b'){e.preventDefault();wrapMessageSelection('**')}else if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='i'){e.preventDefault();wrapMessageSelection('*')}else if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();chatForm.requestSubmit()}});
+
+
+// Show the live OAuth connection state without exposing provider tokens to the browser.
+async function refreshConnectionCards(){
+ if(!currentMember)return;
+ try{
+  const linked=await memberApi("/api/connections");
+  document.querySelectorAll("[data-connection-provider]").forEach(card=>{
+   const provider=card.dataset.connectionProvider;
+   const item=linked[provider];
+   const detail=card.querySelector("small");
+   const action=card.querySelector("strong");
+   if(item){
+    if(detail)detail.textContent="Connected as "+(item.displayName||"your account");
+    if(action)action.textContent="Reconnect ↗";
+    card.dataset.connected="true";
+   }else{
+    card.dataset.connected="false";
+    if(action)action.textContent="Connect ↗";
+   }
+  });
+ }catch{}
+}
