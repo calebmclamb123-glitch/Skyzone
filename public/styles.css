@@ -448,3 +448,47 @@ body{
 @media(max-width:650px){.chat-main-header{align-items:flex-start;gap:10px;flex-wrap:wrap}.chat-header-tools{width:100%;margin-left:0}.chat-header-tools input{flex:1;width:120px}}
 
 .server-tools{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:8px}.server-tools button,.server-invite-tools button{background:#24213a;color:#dcd6ff;border:1px solid rgba(174,165,255,.18);border-radius:7px;padding:8px 5px;font-size:11px;cursor:pointer}.server-list{display:grid;gap:5px;padding:0 8px 8px;max-height:220px;overflow:auto}.server-switch{display:flex;align-items:center;gap:8px;text-align:left;width:100%;border:0;border-radius:7px;background:transparent;color:#c7c4dc;padding:7px;font:12px var(--font);cursor:pointer}.server-switch:hover,.server-switch.active{background:#292443;color:#fff}.server-switch>span{width:25px;height:25px;border-radius:8px;background:linear-gradient(135deg,#8b5cf6,#477ee9);display:grid;place-items:center;color:white;font-weight:700}.server-switch small{margin-left:auto;color:#9993b7}.server-invite-tools{padding:8px;display:grid;gap:6px}.server-invite-tools small{font-size:10px;color:#b8a8ff;overflow-wrap:anywhere}
+
+/* Discord-style server rail, channel navigator, context menu and member roster */
+.discord-chat{grid-template-columns:68px 232px minmax(0,1fr) 190px;min-height:650px;border-radius:12px;background:#313338}
+.server-rail{background:#1e1f22;display:flex;align-items:center;flex-direction:column;gap:9px;padding:13px 0;min-height:650px}
+.rail-home,.server-switch,.rail-add-server,.rail-join-server{width:44px;height:44px;min-width:44px;border:0;border-radius:50%;display:grid;place-items:center;background:#313338;color:#dbdee1;font-weight:800;font-size:16px;cursor:pointer;transition:border-radius .15s,background .15s,color .15s}
+.rail-home{border-radius:16px;background:linear-gradient(145deg,#8b5cf6,#5865f2);color:white}
+.rail-home:hover,.server-switch:hover,.server-switch.active{border-radius:14px;background:#5865f2;color:white}
+.rail-divider{height:2px;width:30px;border-radius:2px;background:#35363c;margin:1px 0}
+.server-rail .server-list{display:flex;flex-direction:column;align-items:center;gap:9px;padding:0;max-height:430px;overflow:auto;width:100%}
+.server-rail .server-switch{padding:0;position:relative;overflow:visible}
+.server-rail .server-switch span{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:#313338;color:#dbdee1;font-size:15px;transition:border-radius .15s}
+.server-rail .server-switch:hover span,.server-rail .server-switch.active span{border-radius:14px;background:#5865f2;color:white}
+.server-rail .server-switch.active:before{content:"";position:absolute;left:-12px;top:8px;width:4px;height:28px;border-radius:0 4px 4px 0;background:white}
+.rail-add-server,.rail-join-server{background:#313338;color:#23a559;font-size:23px}
+.rail-add-server:hover,.rail-join-server:hover{border-radius:14px;background:#23a559;color:white}
+.chat-server-sidebar{position:relative;padding:0 9px;background:#2b2d31}
+.chat-server-title{height:58px;padding:0 9px;letter-spacing:0;font-size:13px;justify-content:space-between;gap:8px}
+.chat-server-title>span:nth-child(2){overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.server-menu-toggle{margin-left:auto;border:0;background:transparent;color:#b5bac1;font-size:19px;cursor:pointer}
+.server-menu{position:absolute;z-index:30;top:51px;left:9px;right:9px;padding:7px;background:#111214;border:1px solid #202126;border-radius:8px;box-shadow:0 12px 30px #0008;display:grid;gap:3px}
+.server-menu button{border:0;border-radius:5px;background:transparent;color:#dbdee1;text-align:left;padding:9px 10px;font-size:11px;cursor:pointer}
+.server-menu button:hover{background:#404249}
+.server-menu button:last-child{color:#ed777e}
+.server-invite-code{padding:7px 10px;color:#b5bac1;font-size:10px;overflow-wrap:anywhere}
+.server-tools,.server-invite-tools{display:none!important}
+.chat-sidebar-label{margin:20px 7px 7px;font-size:10px;letter-spacing:.7px}
+.chat-channel{padding:7px 9px;font-size:13px;font-weight:500;min-height:33px}
+.chat-channel>span{font-size:20px}
+.chat-sidebar-footer{margin-top:auto}
+.chat-main{padding:0 17px 12px;min-height:650px}
+.chat-main-header{flex-shrink:0}
+.chat-main .chat-messages{flex:1;height:auto;min-height:240px;max-height:480px}
+.server-member-sidebar{background:#2b2d31;padding:17px 10px;min-width:0;overflow:auto}
+.member-sidebar-title,.member-group-label{display:flex;justify-content:space-between;color:#949ba4;font-size:10px;font-weight:800;letter-spacing:.6px;padding:3px 5px 12px}
+.member-group-label{padding-top:12px}
+.server-member-list{display:grid;gap:3px}
+.server-member-row{display:flex;align-items:center;gap:9px;padding:6px;border-radius:5px;color:#dbdee1;font-size:11px;min-width:0}
+.server-member-row:hover{background:#35373d}
+.server-member-row>span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.server-member-row small{display:block;color:#949ba4;font-size:9px;margin-top:2px;text-transform:capitalize}
+.member-avatar{width:27px;height:27px;flex:0 0 27px;border-radius:50%;display:grid;place-items:center;background:#5865f2;color:white;font-size:9px;font-weight:700}
+.member-list-empty{font-size:11px;color:#949ba4;line-height:1.5;padding:8px}
+@media(max-width:1050px){.discord-chat{grid-template-columns:62px 205px minmax(0,1fr)}.server-member-sidebar{display:none}}
+@media(max-width:680px){.discord-chat{grid-template-columns:54px 155px minmax(0,1fr);min-height:590px}.chat-server-sidebar{padding:0 5px}.chat-main{padding:0 9px 10px}.chat-header-tools .chat-live{display:none}.chat-main-header{gap:5px}.chat-header-tools input{width:95px}}
