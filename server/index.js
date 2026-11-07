@@ -344,7 +344,7 @@ app.put("/api/admin/announcements", requireAdmin, (req, res) => {
   res.json({ saved: true, count: cleaned.length });
 });
 app.get("/api/admin/orders", requireAdmin, (req, res) => res.json(readJson(ORDERS_FILE, [])));
-app.get("/api/admin/chat", requireAdmin, (req, res) => { const channelId=String(req.query.channel||"general"); if(!COMMUNITY_CHANNELS.some(c=>c.id===channelId)) return res.status(404).json({error:"Channel not found."}); const messages=readJson(CHAT_FILE,[]).map(m=>({...m,channelId:m.channelId||"general"})).filter(m=>m.channelId===channelId).slice(-100); res.json(messages); });
+app.get("/api/admin/chat", requireAdmin, (req, res) => { const all=readJson(CHAT_FILE,[]).map(m=>({...m,channelId:m.channelId||"general"})); if(!req.query.channel)return res.json(all.slice(-200)); const channelId=String(req.query.channel); if(!COMMUNITY_CHANNELS.some(c=>c.id===channelId)) return res.status(404).json({error:"Channel not found."}); res.json(all.filter(m=>m.channelId===channelId).slice(-100)); });
 app.get("/api/admin/members", requireAdmin, (req, res) => res.json(readJson(MEMBERS_FILE, []).map(m => ({ id: m.id, username: m.username, avatar: m.avatar || "", createdAt: m.createdAt || null, status: m.status || "" }))));
 app.delete("/api/admin/members/:id/avatar", requireAdmin, (req, res) => {
   const members = readJson(MEMBERS_FILE, []);
