@@ -121,9 +121,10 @@ function verifyMemberSession(req) {
     const data = JSON.parse(Buffer.from(parts[0], "base64url").toString("utf8"));
     if (!data.id || data.exp < Date.now()) return null;
     const member = readJson(MEMBERS_FILE, []).find(m => m.id === data.id);
-    return member ? { id: member.id, username: member.username, avatar: member.avatar || "" } : null;
+    return member ? publicMember(member) : null;
   } catch { return null; }
 }
+function publicMember(member) { return { id: member.id, username: member.username, avatar: member.avatar || "", about: member.about || "", status: member.status || "", settings: { showOnline: member.settings?.showOnline !== false, allowFriendRequests: member.settings?.allowFriendRequests !== false, allowFriendDMs: member.settings?.allowFriendDMs !== false, friendAlerts: member.settings?.friendAlerts !== false, dmAlerts: member.settings?.dmAlerts !== false } }; }
 function requireMember(req, res, next) {
   const member = verifyMemberSession(req);
   if (!member) return res.status(401).json({ error: "Create an account or sign in to use Skyzone chat." });
@@ -169,10 +170,10 @@ app.post("/api/members/register", (req, res) => {
   if (members.some(m => m.email === email)) return res.status(409).json({ error: "An account with that email already exists. Try signing in." });
   if (members.some(m => m.username.toLowerCase() === username.toLowerCase())) return res.status(409).json({ error: "That username is already taken." });
   const credentials = hashPassword(password);
-  const member = { id: crypto.randomUUID(), username, email, salt: credentials.salt, passwordHash: credentials.hash, avatar: "", createdAt: new Date().toISOString() };
+  const member = { id: crypto.randomUUID(), username, email, salt: credentials.salt, passwordHash: credentials.hash, avatar: "", about: "", status: "", settings: {}, createdAt: new Date().toISOString() };
   members.push(member); writeJson(MEMBERS_FILE, members);
   res.cookie(memberCookieName, createMemberSession(member), { httpOnly: true, secure: req.secure, sameSite: "lax", maxAge: memberSessionLifetime, path: "/" });
-  res.status(201).json({ id: member.id, username: member.username, avatar: member.avatar });
+  res.status(201).json(publicMember(member));
 });
 app.post("/api/members/login", (req, res) => {
   if (!secretReady()) return res.status(503).json({ error: "Member accounts are temporarily unavailable. The site owner needs to finish session setup." });
@@ -183,17 +184,42 @@ app.post("/api/members/login", (req, res) => {
   const member = readJson(MEMBERS_FILE, []).find(m => m.email === email);
   if (!member || !verifyPassword(password, member)) return res.status(401).json({ error: "Email or password is incorrect." });
   res.cookie(memberCookieName, createMemberSession(member), { httpOnly: true, secure: req.secure, sameSite: "lax", maxAge: memberSessionLifetime, path: "/" });
-  res.json({ id: member.id, username: member.username, avatar: member.avatar || "" });
+  res.json(publicMember(member));
 });
 app.get("/api/members/me", (req, res) => {
   const member = verifyMemberSession(req);
   if (!member) return res.status(401).json({ error: "Not signed in." });
-  res.json(member);
+  res.json({ ...publicMember(member), email: readJson(MEMBERS_FILE, []).find(m => m.id === member.id)?.email || "" });
 });
 app.post("/api/members/logout", (req, res) => {
   res.clearCookie(memberCookieName, { httpOnly: true, secure: req.secure, sameSite: "lax", path: "/" });
   res.json({ ok: true });
 });
+
+app.put("/api/members/profile", requireMember, (req, res) => {
+  const members = readJson(MEMBERS_FILE, []);
+  const index = members.findIndex(m => m.id === req.member.id);
+  if (index < 0) return res.status(404).json({ error: "Account not found." });
+  const username = safeMemberName(req.body.username);
+  const about = String(req.body.about || "").trim().slice(0, 160);
+  const status = String(req.body.status || "").trim().slice(0, 32);
+  if (username.length < 3) return res.status(400).json({ error: "Display name must be at least 3 characters." });
+  if (members.some(m => m.id !== req.member.id && m.username.toLowerCase() === username.toLowerCase())) return res.status(409).json({ error: "That display name is already taken." });
+  members[index].username = username; members[index].about = about; members[index].status = status;
+  writeJson(MEMBERS_FILE, members);
+  res.json(publicMember(members[index]));
+});
+app.put("/api/members/settings", requireMember, (req, res) => {
+  const members = readJson(MEMBERS_FILE, []);
+  const index = members.findIndex(m => m.id === req.member.id);
+  if (index < 0) return res.status(404).json({ error: "Account not found." });
+  const keys = ["showOnline", "allowFriendRequests", "allowFriendDMs", "friendAlerts", "dmAlerts"];
+  const current = publicMember(members[index]).settings;
+  for (const key of keys) if (typeof req.body[key] === "boolean") current[key] = req.body[key];
+  members[index].settings = current; writeJson(MEMBERS_FILE, members);
+  res.json({ settings: current });
+});
+
 app.put("/api/members/avatar", requireMember, (req, res) => {
   const avatar = cleanImageData(req.body.avatar, 400 * 1024);
   if (!avatar) return res.status(400).json({ error: "Upload a PNG, JPG, WEBP, or GIF smaller than 400 KB." });
@@ -296,6 +322,7 @@ app.post("/api/friends/requests", requireMember, (req,res)=>{
  const username=safeMemberName(req.body.username);
  const target=readJson(MEMBERS_FILE,[]).find(m=>m.username.toLowerCase()===username.toLowerCase());
  if(!target)return res.status(404).json({error:"No Skyzone member has that username."});
+  if(target.settings?.allowFriendRequests===false)return res.status(403).json({error:"That member is not accepting friend requests."});
  if(target.id===req.member.id)return res.status(400).json({error:"You cannot add yourself."});
  const all=readJson(FRIENDS_FILE,[]);
  if(all.some(x=>(x.from===req.member.id&&x.to===target.id)||(x.from===target.id&&x.to===req.member.id)))return res.status(409).json({error:"A request or friendship already exists."});
