@@ -430,3 +430,7 @@ body{
 .owner-announcement-form input{width:100%;min-width:0}
 .owner-announcement-form button{white-space:nowrap;padding:0 14px}
 @media(max-width:520px){.owner-announcement-form{grid-template-columns:1fr!important}.owner-announcement-form button{min-height:38px}}
+
+
+/* Account connection directory */
+.connection-directory{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:22px 0 28px}.connection-card{display:flex;align-items:center;gap:11px;min-width:0;padding:13px;border:1px solid var(--line);border-radius:11px;background:#10101f;transition:border-color .2s,transform .2s}.connection-card:hover{border-color:#9478ef;transform:translateY(-2px)}.connection-icon{width:37px;height:37px;flex:0 0 37px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,#30244f,#1b3457);font-weight:800;color:#d6c8ff}.connection-card>span:nth-child(2){display:grid;gap:3px;min-width:0}.connection-card b{font-size:12px}.connection-card small{font-size:10px;color:#9693ad;overflow-wrap:anywhere}.connection-card strong{margin-left:auto;font-size:10px;color:#bca8ff;white-space:nowrap}.connection-profile-heading{margin:25px 0 7px;font:600 17px var(--display)}@media(max-width:520px){.connection-directory{grid-template-columns:1fr}}
