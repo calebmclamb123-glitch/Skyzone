@@ -15,6 +15,8 @@ const ANNOUNCEMENTS_FILE = path.join(DATA_DIR, "announcements.json");
 const CHAT_FILE = path.join(DATA_DIR, "chat.json");
 const MEMBERS_FILE = path.join(DATA_DIR, "members.json");
 const UPLOADS_FILE = path.join(DATA_DIR, "uploads.json");
+const FRIENDS_FILE = path.join(DATA_DIR, "friends.json");
+const DMS_FILE = path.join(DATA_DIR, "direct-messages.json");
 fs.mkdirSync(DATA_DIR, { recursive: true });
 const SESSION_SECRET_FILE = path.join(DATA_DIR, ".session-secret");
 if (!process.env.SESSION_SECRET) {
@@ -43,6 +45,8 @@ if (!fs.existsSync(ANNOUNCEMENTS_FILE)) writeJson(ANNOUNCEMENTS_FILE, starterAnn
 if (!fs.existsSync(CHAT_FILE)) writeJson(CHAT_FILE, []);
 if (!fs.existsSync(MEMBERS_FILE)) writeJson(MEMBERS_FILE, []);
 if (!fs.existsSync(UPLOADS_FILE)) writeJson(UPLOADS_FILE, []);
+if (!fs.existsSync(FRIENDS_FILE)) writeJson(FRIENDS_FILE, []);
+if (!fs.existsSync(DMS_FILE)) writeJson(DMS_FILE, []);
 
 const allowedEmails = (process.env.ADMIN_EMAILS || "calebmclamb123@gmail.com,calebmclamb19@gmail.com")
   .split(",").map(x => x.trim().toLowerCase()).filter(Boolean);
@@ -260,6 +264,58 @@ app.delete("/api/admin/chat/:id", requireAdmin, (req, res) => {
   const messages = readJson(CHAT_FILE, []).filter(m => m.id !== req.params.id);
   writeJson(CHAT_FILE, messages);
   res.json({ deleted: true });
+});
+
+// Member friendships and private one-to-one messages.
+function areFriends(a,b){return readJson(FRIENDS_FILE,[]).some(x=>x.status==="accepted"&&((x.from===a&&x.to===b)||(x.from===b&&x.to===a)))}
+app.get("/api/friends", requireMember, (req,res)=>{
+ const all=readJson(FRIENDS_FILE,[]);
+ const members=readJson(MEMBERS_FILE,[]);
+ const view=(x)=>{const m=members.find(v=>v.id===(x.from===req.member.id?x.to:x.from));return m?{id:m.id,username:m.username,avatar:m.avatar||""}:null};
+ res.json({
+  friends:all.filter(x=>x.status==="accepted"&&(x.from===req.member.id||x.to===req.member.id)).map(x=>view(x)).filter(Boolean),
+  incoming:all.filter(x=>x.status==="pending"&&x.to===req.member.id).map(x=>({...view(x),requestId:x.id})).filter(Boolean),
+  outgoing:all.filter(x=>x.status==="pending"&&x.from===req.member.id).map(x=>({...view(x),requestId:x.id})).filter(Boolean)
+ });
+});
+app.post("/api/friends/requests", requireMember, (req,res)=>{
+ const username=safeMemberName(req.body.username);
+ const target=readJson(MEMBERS_FILE,[]).find(m=>m.username.toLowerCase()===username.toLowerCase());
+ if(!target)return res.status(404).json({error:"No Skyzone member has that username."});
+ if(target.id===req.member.id)return res.status(400).json({error:"You cannot add yourself."});
+ const all=readJson(FRIENDS_FILE,[]);
+ if(all.some(x=>(x.from===req.member.id&&x.to===target.id)||(x.from===target.id&&x.to===req.member.id)))return res.status(409).json({error:"A request or friendship already exists."});
+ const request={id:crypto.randomUUID(),from:req.member.id,to:target.id,status:"pending",createdAt:new Date().toISOString()};
+ all.push(request);writeJson(FRIENDS_FILE,all);
+ res.status(201).json({sent:true,username:target.username});
+});
+app.post("/api/friends/requests/:id/accept", requireMember, (req,res)=>{
+ const all=readJson(FRIENDS_FILE,[]),item=all.find(x=>x.id===req.params.id&&x.to===req.member.id&&x.status==="pending");
+ if(!item)return res.status(404).json({error:"Friend request not found."});
+ item.status="accepted";item.acceptedAt=new Date().toISOString();writeJson(FRIENDS_FILE,all);res.json({accepted:true});
+});
+app.delete("/api/friends/requests/:id", requireMember, (req,res)=>{
+ const all=readJson(FRIENDS_FILE,[]),item=all.find(x=>x.id===req.params.id&&(x.from===req.member.id||x.to===req.member.id)&&x.status==="pending");
+ if(!item)return res.status(404).json({error:"Friend request not found."});
+ writeJson(FRIENDS_FILE,all.filter(x=>x.id!==item.id));res.json({removed:true});
+});
+app.delete("/api/friends/:id", requireMember, (req,res)=>{
+ const all=readJson(FRIENDS_FILE,[]),item=all.find(x=>x.status==="accepted"&&((x.from===req.member.id&&x.to===req.params.id)||(x.to===req.member.id&&x.from===req.params.id)));
+ if(!item)return res.status(404).json({error:"Friend not found."});
+ writeJson(FRIENDS_FILE,all.filter(x=>x.id!==item.id));res.json({removed:true});
+});
+app.get("/api/dms", requireMember, (req,res)=>{
+ const other=String(req.query.with||"");
+ if(!other||!areFriends(req.member.id,other))return res.status(403).json({error:"You can only message accepted friends."});
+ res.json(readJson(DMS_FILE,[]).filter(m=>(m.from===req.member.id&&m.to===other)||(m.from===other&&m.to===req.member.id)).slice(-100));
+});
+app.post("/api/dms", requireMember, (req,res)=>{
+ const to=String(req.body.to||"");const body=String(req.body.body||"").trim().slice(0,1000);
+ if(!areFriends(req.member.id,to))return res.status(403).json({error:"You can only message accepted friends."});
+ if(!body)return res.status(400).json({error:"Write a message first."});
+ if(!rateLimit(chatAttempts,req.ip||"unknown",12,60000))return res.status(429).json({error:"Please slow down before sending another message."});
+ const message={id:crypto.randomUUID(),from:req.member.id,to,body,createdAt:new Date().toISOString()};
+ const all=readJson(DMS_FILE,[]);all.push(message);writeJson(DMS_FILE,all.slice(-2000));res.status(201).json(message);
 });
 
 // Member community channels and message interactions.
