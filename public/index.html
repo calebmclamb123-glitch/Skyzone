@@ -52,11 +52,24 @@
         </div>
         <aside class="discord-panel"><div class="discord-symbol">◈</div><div class="eyebrow">OFFICIAL COMMUNITY</div><h3>Chat with us on Discord.</h3><p>Meet other members, talk with the team, and catch announcements as they happen.</p><a class="btn btn-primary" href="https://discord.gg/QVR7E9jgUN" target="_blank" rel="noopener">Join Skyzone ↗</a><small>Opens the official Skyzone Discord invite.</small></aside>
       </div>
-      <div class="website-chat">
-        <div class="chat-heading"><div><div class="eyebrow">COMMUNITY CHAT</div><h3>Talk with the <span class="gradient-text">community.</span></h3><p>Use a display name. Don't post private information.</p></div><span class="chat-live"><i></i> WEBSITE CHAT</span></div>
-        <div id="chatMessages" class="chat-messages" aria-live="polite"><p class="chat-empty">Loading messages…</p></div>
-        <form id="chatForm" class="chat-form"><input name="name" maxlength="24" required placeholder="Display name" aria-label="Display name"><input name="body" maxlength="500" required placeholder="Write a message…" aria-label="Message"><button class="btn btn-primary" type="submit">Send ↗</button></form>
-        <p id="chatStatus" class="chat-status" role="status">Messages are public and may be removed by moderators.</p>
+      <div class="website-chat discord-chat">
+        <aside class="chat-server-sidebar" aria-label="Chat channels">
+          <div class="chat-server-title"><span class="chat-server-icon">S</span><span>SKYZONE</span><span class="chat-server-chevron">⌄</span></div>
+          <div class="chat-sidebar-label">TEXT CHANNELS</div>
+          <button class="chat-channel active" type="button"><span>#</span> general</button>
+          <button class="chat-channel" type="button" disabled><span>#</span> announcements <small>soon</small></button>
+          <button class="chat-channel" type="button" disabled><span>#</span> media <small>soon</small></button>
+          <div class="chat-sidebar-label voice-label">COMMUNITY</div>
+          <div class="chat-sidebar-note"><i></i> Public community chat</div>
+          <div class="chat-sidebar-footer"><span class="chat-mini-avatar">S</span><span><b>Skyzone</b><small>Website member</small></span></div>
+        </aside>
+        <section class="chat-main" aria-label="Skyzone general chat">
+          <div class="chat-main-header"><div class="chat-current-channel"><b>#</b><strong>general</strong></div><span class="chat-live"><i></i> COMMUNITY CHAT</span></div>
+          <div class="chat-welcome"><div class="chat-welcome-hash">#</div><h3>Welcome to <span class="gradient-text">#general</span></h3><p>This is the beginning of the Skyzone community chat.</p></div>
+          <div id="chatMessages" class="chat-messages" aria-live="polite"><p class="chat-empty">Loading messages…</p></div>
+          <form id="chatForm" class="chat-form"><div class="chat-input-wrap"><span>＋</span><input name="body" maxlength="500" required placeholder="Message #general" aria-label="Message"></div><input class="chat-name-input" name="name" maxlength="24" required placeholder="Display name" aria-label="Display name"><button class="btn btn-primary" type="submit" aria-label="Send message">➤</button></form>
+          <p id="chatStatus" class="chat-status" role="status">Messages are public. Never share passwords, addresses, or private information.</p>
+        </section>
       </div>
     </section>
 
