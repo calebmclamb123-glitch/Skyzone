@@ -401,3 +401,9 @@ body{
  font-family:'Press Start 2P',monospace;font-size:7px;letter-spacing:.4px;line-height:1.8
 }
 .brand-mark,.core-icon,.chat-server-icon{image-rendering:pixelated}
+
+/* Profile customization panel */
+.profile-art-editor{display:grid;gap:10px;margin:14px 0;padding:12px;border:1px solid #454a58;background:#1b1e27;border-radius:8px}
+.profile-banner-preview{height:112px;border-radius:6px;background:linear-gradient(120deg,#27334d,#35305a 55%,#1b2434);background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;color:#aeb9d4;font-size:10px;letter-spacing:2px;overflow:hidden}
+.profile-banner-preview.has-banner span{display:none}
+.profile-art-editor .avatar-upload-label{width:max-content;max-width:100%}
