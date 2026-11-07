@@ -70,17 +70,15 @@
         <aside class="chat-server-sidebar" aria-label="Chat channels">
           <div class="chat-server-title"><span class="chat-server-icon">S</span><span>SKYZONE</span><span class="chat-server-chevron">⌄</span></div>
           <div class="chat-sidebar-label">TEXT CHANNELS</div>
-          <button class="chat-channel active" type="button"><span>#</span> general</button>
-          <button class="chat-channel" type="button" disabled><span>#</span> announcements <small>soon</small></button>
-          <button class="chat-channel" type="button" disabled><span>#</span> media <small>soon</small></button>
+          <div id="chatChannelList"><button class="chat-channel active" data-channel="general" type="button"><span>#</span> general</button><button class="chat-channel" data-channel="announcements" type="button"><span>#</span> announcements</button><button class="chat-channel" data-channel="media" type="button"><span>#</span> media</button></div>
           <div class="chat-sidebar-label voice-label">COMMUNITY</div>
           <div class="chat-sidebar-note"><i></i> Public community chat</div>
           <div class="chat-sidebar-footer"><span class="chat-mini-avatar">S</span><span><b>Skyzone</b><small>Website member</small></span></div>
         </aside>
         <section class="chat-main" aria-label="Skyzone general chat">
           <div id="chatSignInNotice" class="chat-signin-notice">Sign in to your Skyzone account above to join the community chat.</div>
-          <div class="chat-main-header"><div class="chat-current-channel"><b>#</b><strong>general</strong></div><span class="chat-live"><i></i> COMMUNITY CHAT</span></div>
-          <div class="chat-welcome"><div class="chat-welcome-hash">#</div><h3>Welcome to <span class="gradient-text">#general</span></h3><p>This is the beginning of the Skyzone community chat.</p></div>
+          <div class="chat-main-header"><div class="chat-current-channel"><b>#</b><strong id="chatChannelName">general</strong></div><span class="chat-live"><i></i> COMMUNITY CHAT</span></div>
+          <div class="chat-welcome"><div class="chat-welcome-hash">#</div><h3>Welcome to <span class="gradient-text" id="chatWelcomeChannel">#general</span></h3><p id="chatChannelTopic">Everyday community conversation.</p></div>
           <div id="chatMessages" class="chat-messages" aria-live="polite"><p class="chat-empty">Loading messages…</p></div>
           <form id="chatForm" class="chat-form" hidden><label class="chat-attach-button" title="Attach an image or GIF">＋<input id="chatAttachment" type="file" accept="image/png,image/jpeg,image/webp,image/gif"></label><div class="chat-input-wrap"><input name="body" maxlength="500" placeholder="Message #general" aria-label="Message"></div><button class="btn btn-primary" type="submit" aria-label="Send message">➤</button><div id="chatAttachmentName" class="chat-attachment-name"></div></form>
           <p id="chatStatus" class="chat-status" role="status">Messages are public. Never share passwords, addresses, or private information.</p>
