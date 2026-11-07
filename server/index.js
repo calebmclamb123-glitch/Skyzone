@@ -329,6 +329,14 @@ app.put("/api/admin/announcements", requireAdmin, (req, res) => {
 app.get("/api/admin/orders", requireAdmin, (req, res) => res.json(readJson(ORDERS_FILE, [])));
 app.get("/api/admin/chat", requireAdmin, (req, res) => res.json(readJson(CHAT_FILE, []).slice(-200)));
 app.get("/api/admin/members", requireAdmin, (req, res) => res.json(readJson(MEMBERS_FILE, []).map(m => ({ id: m.id, username: m.username, avatar: m.avatar || "", createdAt: m.createdAt || null, status: m.status || "" }))));
+app.delete("/api/admin/members/:id/avatar", requireAdmin, (req, res) => {
+  const members = readJson(MEMBERS_FILE, []);
+  const index = members.findIndex(m => m.id === req.params.id);
+  if (index < 0) return res.status(404).json({ error: "Member not found." });
+  members[index].avatar = "";
+  writeJson(MEMBERS_FILE, members);
+  res.json({ removed: true });
+});
 app.delete("/api/admin/chat/:id", requireAdmin, (req, res) => {
   const messages = readJson(CHAT_FILE, []).filter(m => m.id !== req.params.id);
   writeJson(CHAT_FILE, messages);
