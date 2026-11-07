@@ -204,6 +204,20 @@ app.put("/api/members/avatar", requireMember, (req, res) => {
   res.json({ avatar });
 });
 
+// Lightweight online presence for the member sidebar.
+app.post("/api/members/presence", requireMember, (req,res)=>{
+ const members=readJson(MEMBERS_FILE,[]);
+ const index=members.findIndex(m=>m.id===req.member.id);
+ if(index<0)return res.status(404).json({error:"Account not found."});
+ members[index].lastSeenAt=new Date().toISOString();writeJson(MEMBERS_FILE,members);
+ res.json({ok:true});
+});
+app.get("/api/members/online", requireMember, (req,res)=>{
+ const cutoff=Date.now()-2*60*1000;
+ const online=readJson(MEMBERS_FILE,[]).filter(m=>m.lastSeenAt&&Date.parse(m.lastSeenAt)>cutoff)
+  .map(m=>({id:m.id,username:m.username,avatar:m.avatar||""}));
+ res.json({count:online.length,members:online});
+});
 app.get("/api/products", (req, res) => res.json(readJson(PRODUCTS_FILE, starterProducts).filter(p => p.active)));
 app.get("/api/announcements", (req, res) => res.json(readJson(ANNOUNCEMENTS_FILE, starterAnnouncements).filter(a => a.active)));
 
