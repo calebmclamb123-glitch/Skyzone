@@ -35,3 +35,10 @@ Secure card checkout is not connected yet. Before accepting payments, connect a 
 ## Discord
 
 Official Skyzone invite: `https://discord.gg/QVR7E9jgUN`.
+
+
+## Member accounts and chat media
+
+Visitors can create a free account with a username, email, and password, then sign in to chat. Passwords are stored as scrypt hashes, not plain text. Members can upload a PNG, JPG, WEBP, or GIF profile picture (400 KB maximum), and attach images/GIFs to chat messages (700 KB maximum). The owner dashboard includes a protected file library for PNG, JPG, WEBP, GIF, PDF, and TXT uploads up to 2 MB.
+
+The session signing key is generated automatically and stored in the app data directory when `SESSION_SECRET` is not supplied. For a production launch, configure a persistent `SESSION_SECRET` in Render and move member records, chat history, and uploads to persistent database/object storage. **Render's free service filesystem is ephemeral**, so locally stored accounts, profile pictures, chat attachments, and owner uploads can be lost when the service is redeployed or its instance is replaced. Do not treat the current local-JSON storage as permanent user-account storage.
