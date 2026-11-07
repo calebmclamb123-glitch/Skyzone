@@ -1,6 +1,6 @@
 # Skyzone Community Website
 
-Node/Express website for the Skyzone community, with Discord links, announcements, public website chat, store listings, staff, rules, applications, and a Google-authenticated owner dashboard.
+Node/Express website for the Skyzone community, with website-wide member accounts, member chat channels, reactions, replies, friend requests, direct messages, online presence, store listings, announcements, staff, rules, applications, and a Google-authenticated owner dashboard.
 
 ## Owner sign-in setup
 
@@ -17,9 +17,24 @@ The admin page is `/admin.html`. Owner access is granted only after Google verif
 
 Do not put OAuth client secrets or session secrets in GitHub or public chat. This implementation uses Google Identity Services ID-token verification; it does not ask for or store Google passwords.
 
-## Website chat
+## Member accounts and community
 
-Visitors can post using a display name without sharing an email address. Messages are public, text-only, limited in length, and rate-limited. Owners can remove messages in the admin dashboard. The current implementation stores chat, products, and announcements in local JSON files under `server/data`. Render's free filesystem can be ephemeral; connect a persistent database before relying on chat history or admin content.
+Members create one Skyzone account from the website Account section and use the same session for chat. Passwords are stored as scrypt hashes. Members can upload PNG, JPG, WEBP, or GIF avatars, send image/GIF chat attachments, use the general and media channels, read the announcements channel, reply to messages, react, and edit or delete their own messages.
+
+The Friends & DMs panel supports username-based friend requests, accepting or ignoring incoming requests, removing friends, and one-to-one messages between accepted friends. A lightweight presence heartbeat shows recently active members. Direct messages are access-controlled to accepted friends, but are not end-to-end encrypted.
+
+## Data persistence on Render
+
+The app stores its JSON data under `server/data` by default. Render's filesystem can be ephemeral, so **do not rely on the default location for production accounts or chat history**.
+
+For a Render persistent disk:
+1. Open the Skyzone service in Render and add a persistent disk.
+2. Choose a mount path such as `/var/data`.
+3. In the service's Environment settings, add `DATA_DIR` with the value `/var/data`.
+4. Set `SESSION_SECRET` to a private random value at least 32 characters long. Keep it out of GitHub.
+5. Save and redeploy. Keep the disk mounted at the same path on future deploys.
+
+This makes the existing JSON storage use the persistent disk; it is a practical interim step, not a substitute for a database when the community grows. Uploaded images are currently stored as data URLs in JSON, so a database plus object storage is the better long-term design.
 
 ## Run locally
 
