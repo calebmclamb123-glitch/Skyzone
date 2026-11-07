@@ -476,7 +476,7 @@ app.post("/api/applications", async (req, res) => {
           fields: [
             { name: "Applicant", value: username, inline: true },
             { name: "Application type", value: type, inline: true },
-            { name: "Application details", value: message.slice(0, 1024), inline: false }
+            { name: "Application details", value: message, inline: false }
           ],
           timestamp: new Date().toISOString(),
           footer: { text: "Submitted through the Skyzone website" }
