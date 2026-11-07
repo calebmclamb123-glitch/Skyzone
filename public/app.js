@@ -60,7 +60,8 @@ function renderChatMessages(messages) {
   if (!messages.length) { chatMessagesEl.innerHTML = '<p class="chat-empty">No messages yet. Start the conversation!</p>'; return; }
   chatMessagesEl.innerHTML = messages.map(m => {
     const time = new Date(m.createdAt).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"});
-    return '<article class="chat-message"><div class="chat-message-top"><strong>'+chatEscape(m.name)+'</strong><time>'+time+'</time></div><p>'+chatEscape(m.body)+'</p></article>';
+    const initials = chatEscape(String(m.name || "S").trim().slice(0,1).toUpperCase());
+    return '<article class="chat-message"><div class="chat-avatar" aria-hidden="true">'+initials+'</div><div class="chat-message-content"><div class="chat-message-top"><strong>'+chatEscape(m.name)+'</strong><time>'+time+'</time></div><p>'+chatEscape(m.body)+'</p></div></article>';
   }).join("");
   chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
 }
