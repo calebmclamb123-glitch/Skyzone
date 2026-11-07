@@ -266,3 +266,132 @@ body{
   background-image:linear-gradient(135deg,#8b68d9,#4778b9);
   color:#fff;
 }
+
+
+/* SKYZONE: Discord x Minecraft visual refresh */
+:root{
+ --bg:#17191f;--panel:#23252d;--panel2:#2b2e36;--line:#3b3f49;
+ --text:#f2f3f5;--muted:#b5bac1;--purple:#5865f2;--blue:#55a8ff;
+ --font:'DM Sans',sans-serif;--display:'Space Grotesk',sans-serif;
+}
+body{
+ background-color:#17191f;
+ background-image:
+  linear-gradient(rgba(20,22,28,.94),rgba(20,22,28,.97)),
+  repeating-linear-gradient(0deg,transparent 0 31px,#ffffff06 31px 32px),
+  repeating-linear-gradient(90deg,transparent 0 31px,#ffffff06 31px 32px);
+ background-attachment:fixed;
+}
+.topbar{
+ background:rgba(35,37,45,.96);border-bottom:3px solid #5865f2;
+ box-shadow:0 5px 0 #111318;backdrop-filter:blur(12px)
+}
+.brand{letter-spacing:1.5px}
+.brand-mark{
+ border-radius:5px!important;background:#5865f2!important;
+ box-shadow:0 4px 0 #3540b4,0 7px 18px #0006!important;
+ border:2px solid #aab0ff!important;color:#fff!important
+}
+.brand-dot{color:#8ea0ff}
+.topbar nav{color:#c7cbd2}
+.topbar nav a:hover,.topbar nav a[href='/admin.html']{color:#aeb7ff}
+.discord-nav{
+ border:2px solid #7782f6;background:#5865f2;color:white;
+ border-radius:5px;box-shadow:0 4px 0 #3844b8
+}
+.discord-nav span{color:#fff}
+.hero{min-height:560px}
+.hero h1,.section-heading h2,.join-banner h2,.apply-panel h2{
+ text-shadow:3px 3px 0 #101116;letter-spacing:-1.5px
+}
+.eyebrow{color:#aeb7ff}
+.pulse{background:#3ba55d;box-shadow:0 0 0 4px #3ba55d22}
+.hero-art .core-card{
+ border:3px solid #5865f2;border-radius:7px;
+ background:linear-gradient(145deg,#34394a,#22252d);
+ box-shadow:8px 8px 0 #111318,0 20px 60px #0008
+}
+.core-icon{border-radius:6px;background:linear-gradient(145deg,#6475ef,#4554c7);box-shadow:0 5px 0 #303c9b}
+.float-chip{border:2px solid #454a58;border-radius:5px;background:#292c34;box-shadow:4px 4px 0 #111318}
+.stats{border-color:#3b3f49;background:#20232a}
+.stats div{border-color:#3b3f49}
+.stats strong{color:#aeb7ff}
+.section-tag{border-radius:4px;border:2px solid #454a58;background:#252832}
+.product-card,.staff-card,.announcement-card,.discord-panel{
+ border:2px solid #3d424e;border-radius:6px;
+ background:linear-gradient(145deg,#292c35,#20232a);
+ box-shadow:4px 4px 0 #111318
+}
+.product-card:hover{border-color:#7885ff;box-shadow:4px 4px 0 #111318,0 0 0 2px #5865f244}
+.product-image{border-radius:4px;background-color:#252b3b;background-image:linear-gradient(45deg,#ffffff08 25%,transparent 25%,transparent 75%,#ffffff08 75%),linear-gradient(45deg,#ffffff08 25%,transparent 25%,transparent 75%,#ffffff08 75%);background-size:24px 24px;background-position:0 0,12px 12px}
+.buy-btn,.btn-primary{
+ background:#5865f2;color:white;border:2px solid #8d98ff;border-radius:4px;
+ box-shadow:0 4px 0 #343fae
+}
+.buy-btn:hover,.btn-primary:hover{background:#6975ff}
+.btn{border-radius:4px}
+.btn-quiet{border:2px solid #454a58;background:#2b2e36;border-radius:4px}
+.staff-avatar{border-radius:5px!important;border:2px solid #ffffff33;box-shadow:3px 3px 0 #111318}
+.rules-list article{border-color:#3b3f49}
+.rules-list article>b{color:#aeb7ff}
+.apply-panel,.join-banner{
+ border:2px solid #454a58;border-radius:7px;
+ background:linear-gradient(120deg,#292d3b,#20242e);
+ box-shadow:5px 5px 0 #111318
+}
+.application-form input,.application-form select,.application-form textarea{
+ border:2px solid #454a58;border-radius:4px;background:#17191f
+}
+.application-form input:focus,.application-form textarea:focus,.application-form select:focus{border-color:#7885ff}
+.community-layout{gap:20px}
+.discord-panel{background:linear-gradient(145deg,#30354a,#20232a)}
+.discord-symbol{border-radius:8px;background:#5865f2;box-shadow:0 4px 0 #343fae}
+.website-chat.discord-chat{
+ border:2px solid #454a58;border-radius:7px;
+ box-shadow:6px 6px 0 #111318
+}
+.chat-server-sidebar{background:#202127;border-right:1px solid #18191e}
+.chat-server-title{border-color:#3a3d46}
+.chat-server-icon,.chat-mini-avatar{border-radius:5px!important;background:#5865f2!important;border:1px solid #9da6ff}
+.chat-channel{border-radius:4px}
+.chat-channel.active{background:#3a3d49;border-left:3px solid #7885ff}
+.chat-main{background:#313338}
+.chat-main-header{border-color:#41434a}
+.chat-welcome-hash{border-radius:5px;background:#41434a}
+.chat-main .chat-messages{background:transparent}
+.chat-main .chat-message{border-radius:4px}
+.chat-main .chat-message:hover{background:#2b2d31}
+.chat-main .chat-input-wrap{background:#383a40;border-radius:5px}
+.chat-main .chat-form .chat-name-input{border-radius:4px}
+.chat-main .chat-form .btn{border-radius:5px}
+.member-auth,.account-section .member-auth{
+ background:#2b2d31;border:2px solid #454750;border-radius:6px;
+ box-shadow:4px 4px 0 #111318
+}
+.auth-tab,.auth-logout,.avatar-upload-label{
+ border-radius:4px;background:#383a40;border:1px solid #555963
+}
+.auth-tab.active{background:#5865f2;border-color:#8791ff}
+.member-auth-form input{background:#1e1f22;border-radius:4px;border-color:#4b4e57}
+.member-profile-shell{border:2px solid #454a58;border-radius:6px;background:#23252d;box-shadow:5px 5px 0 #111318}
+.member-profile-banner{background-image:linear-gradient(90deg,#30364b,#222630)!important}
+.member-settings-nav{background:#1e2027}
+.member-settings-tab{border-radius:4px}
+.member-settings-tab.active{background:#3a3e55;border-left:3px solid #7885ff}
+.member-settings-page input:not([type=checkbox]),.member-settings-page textarea{border-radius:4px;background:#17191f;border-color:#454a58}
+.chat-signin-notice,.friends-panel,.settings-note{border-radius:5px;background:#272a33;border-color:#454a58}
+.chat-reaction-add,.chat-reaction,.chat-message-edit,.chat-message-delete,.chat-message-reply{
+ border-radius:4px;background:#383a40;border-color:#555963
+}
+.admin-body{background-color:#17191f;background-image:repeating-linear-gradient(0deg,transparent 0 31px,#ffffff05 31px 32px),repeating-linear-gradient(90deg,transparent 0 31px,#ffffff05 31px 32px)}
+.admin-card{border:2px solid #414653;border-radius:7px;background:#242730;box-shadow:5px 5px 0 #111318}
+.admin-form input,.admin-form textarea{border-radius:4px;background:#17191f;border-color:#454a58}
+.admin-item{border-radius:5px;background:#1e2027;border-color:#414653}
+.admin-delete{border-radius:4px}
+@media(max-width:760px){
+ .topbar nav{background:#23252d;border-bottom:2px solid #5865f2}
+ .hero-art .core-card{box-shadow:5px 5px 0 #111318}
+}
+@media(prefers-reduced-motion:no-preference){
+ .product-card,.staff-card,.discord-nav,.buy-btn,.btn{transition:transform .16s ease,filter .16s ease,box-shadow .16s ease}
+}
