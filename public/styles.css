@@ -395,3 +395,9 @@ body{
 @media(prefers-reduced-motion:no-preference){
  .product-card,.staff-card,.discord-nav,.buy-btn,.btn{transition:transform .16s ease,filter .16s ease,box-shadow .16s ease}
 }
+
+/* Pixel-font accents: keep long-form text easy to read. */
+.eyebrow,.section-tag,.product-category,.staff-role,.chat-sidebar-label{
+ font-family:'Press Start 2P',monospace;font-size:7px;letter-spacing:.4px;line-height:1.8
+}
+.brand-mark,.core-icon,.chat-server-icon{image-rendering:pixelated}
