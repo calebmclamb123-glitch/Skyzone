@@ -80,4 +80,4 @@ messagesBox.addEventListener("click",async e=>{
   if(del&&confirm("Delete this message?")){await memberApi("/api/chat/"+del.dataset.id,{method:"DELETE"});await refreshMemberChat()}
  }catch(err){chatStatus.textContent=err.message}
 });
-loadMember();setInterval(refreshMemberChat,7000);setInterval(updatePresence,30000);
+loadMember();setInterval(refreshMemberChat,7000);setInterval(updatePresence,30000);setInterval(()=>{if(!member$("#friendsPanel").hidden){refreshFriends().catch(()=>{});if(activeFriendId&&!member$("#dmPanel").hidden)refreshDM().catch(()=>{})}},12000);
