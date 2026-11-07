@@ -45,3 +45,25 @@
 .admin-foot{font-size:12px;color:#b6a6ff;margin:25px 0}.admin-foot a:hover{text-decoration:underline}
 [hidden]{display:none!important}
 @media(max-width:520px){.admin-card{padding:19px}.admin-heading{align-items:flex-start;gap:10px;flex-direction:column}.admin-item{align-items:flex-start}}
+
+
+/* Public Skyzone website chat */
+.website-chat{margin-top:24px;border:1px solid var(--line);border-radius:16px;padding:22px;background:linear-gradient(145deg,#15152a,#0d0d1b)}
+.chat-heading{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:16px}
+.chat-heading h3{font:600 22px var(--display);margin:9px 0 5px}
+.chat-heading p{font-size:11px;color:#9997b0;margin:0}
+.chat-live{display:flex;align-items:center;gap:7px;color:#9d9ab5;font-size:9px;letter-spacing:1.2px;white-space:nowrap}
+.chat-live i{width:7px;height:7px;border-radius:50%;background:#64d6a0;box-shadow:0 0 9px #64d6a0}
+.chat-messages{height:250px;overflow-y:auto;display:flex;flex-direction:column;gap:9px;padding:12px;border:1px solid var(--line);border-radius:10px;background:#090914}
+.chat-message{padding:10px 12px;border-radius:9px;background:#17172a;border:1px solid #ffffff0b}
+.chat-message-top{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.chat-message-top strong{font-size:11px;color:#c5b4ff}.chat-message-top time{font-size:9px;color:#77758f}
+.chat-message p{font-size:12px;line-height:1.55;color:#e2e0f1;margin:6px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.chat-empty{font-size:11px;color:#85829c;text-align:center;margin:auto}
+.chat-form{display:grid;grid-template-columns:minmax(100px,.7fr) minmax(150px,1.5fr) auto;gap:9px;margin-top:12px}
+.chat-form input{min-width:0;border:1px solid #37344f;background:#0c0c19;color:white;border-radius:8px;padding:12px;font:12px var(--font)}
+.chat-form input:focus{outline:1px solid #9277ed}
+.chat-form .btn{padding:11px 16px}
+.chat-status{font-size:10px;color:#85829c;margin:10px 0 0}
+.google-button-wrap{min-height:48px;margin-top:22px;display:flex;justify-content:flex-start}
+@media(max-width:600px){.chat-heading{align-items:flex-start;flex-direction:column}.chat-form{grid-template-columns:1fr}.chat-form .btn{justify-self:start}}
