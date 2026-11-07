@@ -717,6 +717,103 @@ app.post("/api/applications", async (req, res) => {
   }
 });
 
+
+/* Multi-server community foundation: isolated servers, memberships, invites,
+   channel configuration and per-server message storage. */
+const SERVERS_FILE = path.join(DATA_DIR, "servers.json");
+const SERVER_MESSAGES_FILE = path.join(DATA_DIR, "server-messages.json");
+if (!fs.existsSync(SERVERS_FILE)) writeJson(SERVERS_FILE, []);
+if (!fs.existsSync(SERVER_MESSAGES_FILE)) writeJson(SERVER_MESSAGES_FILE, []);
+function cleanServerName(value) { return String(value || "").trim().replace(/\\s+/g, " ").slice(0, 48); }
+function getServerMembership(server, memberId) { return (server.members || []).find(x => x.memberId === memberId); }
+function publicServer(server, memberId) {
+  const membership = getServerMembership(server, memberId);
+  return { id: server.id, name: server.name, description: server.description || "", icon: server.icon || "", ownerId: server.ownerId, inviteCode: membership?.role === "owner" || membership?.role === "admin" ? server.inviteCode : undefined, role: membership?.role || "member", memberCount: (server.members || []).length, channels: (server.channels || []).map(c => ({ id: c.id, name: c.name, topic: c.topic || "", type: c.type || "text" })) };
+}
+function requireServerMember(req, res, next) {
+  const server = readJson(SERVERS_FILE, []).find(s => s.id === req.params.serverId);
+  if (!server || !getServerMembership(server, req.member.id)) return res.status(404).json({ error: "Server not found or you are not a member." });
+  req.server = server; next();
+}
+function requireServerManager(req, res, next) {
+  const membership = getServerMembership(req.server, req.member.id);
+  if (!membership || !["owner", "admin"].includes(membership.role)) return res.status(403).json({ error: "Only this server's owner or an administrator can do that." });
+  next();
+}
+app.get("/api/servers", requireMember, (req, res) => {
+  const servers = readJson(SERVERS_FILE, []);
+  const mine = servers.filter(s => getServerMembership(s, req.member.id));
+  res.json(mine.map(s => publicServer(s, req.member.id)));
+});
+app.post("/api/servers", requireMember, (req, res) => {
+  const name = cleanServerName(req.body.name);
+  if (name.length < 2) return res.status(400).json({ error: "Server names need at least 2 characters." });
+  const servers = readJson(SERVERS_FILE, []);
+  if (servers.filter(s => s.ownerId === req.member.id).length >= 10) return res.status(400).json({ error: "You can own up to 10 servers." });
+  const server = { id: crypto.randomUUID(), name, description: String(req.body.description || "").trim().slice(0, 240), ownerId: req.member.id, inviteCode: crypto.randomBytes(6).toString("base64url"), createdAt: new Date().toISOString(), members: [{ memberId: req.member.id, role: "owner", joinedAt: new Date().toISOString() }], channels: [{ id: crypto.randomUUID(), name: "general", topic: "Start the conversation", type: "text" }, { id: crypto.randomUUID(), name: "announcements", topic: "Server updates", type: "announcement" }] };
+  servers.push(server); writeJson(SERVERS_FILE, servers);
+  res.status(201).json(publicServer(server, req.member.id));
+});
+app.post("/api/servers/join", requireMember, (req, res) => {
+  const code = String(req.body.inviteCode || "").trim();
+  const servers = readJson(SERVERS_FILE, []);
+  const server = servers.find(s => s.inviteCode === code);
+  if (!server) return res.status(404).json({ error: "That invite code is invalid or expired." });
+  if (getServerMembership(server, req.member.id)) return res.json(publicServer(server, req.member.id));
+  if (server.members.length >= 5000) return res.status(400).json({ error: "This server is full." });
+  server.members.push({ memberId: req.member.id, role: "member", joinedAt: new Date().toISOString() });
+  writeJson(SERVERS_FILE, servers); res.status(200).json(publicServer(server, req.member.id));
+});
+app.post("/api/servers/:serverId/leave", requireMember, requireServerMember, (req, res) => {
+  if (req.server.ownerId === req.member.id) return res.status(400).json({ error: "Transfer ownership or delete this server before leaving it." });
+  const servers = readJson(SERVERS_FILE, []);
+  const server = servers.find(s => s.id === req.params.serverId);
+  server.members = server.members.filter(m => m.memberId !== req.member.id);
+  writeJson(SERVERS_FILE, servers); res.json({ left: true });
+});
+app.delete("/api/servers/:serverId", requireMember, requireServerMember, (req, res) => {
+  if (req.server.ownerId !== req.member.id) return res.status(403).json({ error: "Only the server owner can delete this server." });
+  writeJson(SERVERS_FILE, readJson(SERVERS_FILE, []).filter(s => s.id !== req.server.id));
+  writeJson(SERVER_MESSAGES_FILE, readJson(SERVER_MESSAGES_FILE, []).filter(m => m.serverId !== req.server.id));
+  res.json({ deleted: true });
+});
+app.post("/api/servers/:serverId/invite", requireMember, requireServerMember, requireServerManager, (req, res) => {
+  const servers = readJson(SERVERS_FILE, []); const server = servers.find(s => s.id === req.server.id);
+  server.inviteCode = crypto.randomBytes(6).toString("base64url"); writeJson(SERVERS_FILE, servers);
+  res.json({ inviteCode: server.inviteCode });
+});
+app.post("/api/servers/:serverId/channels", requireMember, requireServerMember, requireServerManager, (req, res) => {
+  const name = String(req.body.name || "").trim().toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").slice(0, 40);
+  if (name.length < 2) return res.status(400).json({ error: "Channel names need at least 2 letters or numbers." });
+  if (req.server.channels.some(c => c.name === name)) return res.status(409).json({ error: "That channel already exists." });
+  const servers = readJson(SERVERS_FILE, []); const server = servers.find(s => s.id === req.server.id);
+  const channel = { id: crypto.randomUUID(), name, topic: String(req.body.topic || "").slice(0, 120), type: req.body.type === "announcement" ? "announcement" : "text" };
+  server.channels.push(channel); writeJson(SERVERS_FILE, servers); res.status(201).json(channel);
+});
+app.delete("/api/servers/:serverId/channels/:channelId", requireMember, requireServerMember, requireServerManager, (req, res) => {
+  if (req.server.channels.length <= 1) return res.status(400).json({ error: "A server must keep at least one channel." });
+  const servers = readJson(SERVERS_FILE, []); const server = servers.find(s => s.id === req.server.id);
+  if (!server.channels.some(c => c.id === req.params.channelId)) return res.status(404).json({ error: "Channel not found." });
+  server.channels = server.channels.filter(c => c.id !== req.params.channelId); writeJson(SERVERS_FILE, servers);
+  writeJson(SERVER_MESSAGES_FILE, readJson(SERVER_MESSAGES_FILE, []).filter(m => !(m.serverId === server.id && m.channelId === req.params.channelId)));
+  res.json({ deleted: true });
+});
+app.get("/api/servers/:serverId/messages", requireMember, requireServerMember, (req, res) => {
+  const channelId = String(req.query.channel || "");
+  if (!req.server.channels.some(c => c.id === channelId)) return res.status(404).json({ error: "Channel not found." });
+  res.json(readJson(SERVER_MESSAGES_FILE, []).filter(m => m.serverId === req.server.id && m.channelId === channelId).slice(-100));
+});
+app.post("/api/servers/:serverId/messages", requireMember, requireServerMember, (req, res) => {
+  const channelId = String(req.body.channelId || ""); const channel = req.server.channels.find(c => c.id === channelId);
+  const body = String(req.body.body || "").trim().slice(0, 2000);
+  if (!channel) return res.status(404).json({ error: "Channel not found." });
+  if (!body) return res.status(400).json({ error: "Write a message first." });
+  if (channel.type === "announcement" && !["owner", "admin", "moderator"].includes(getServerMembership(req.server, req.member.id).role)) return res.status(403).json({ error: "Only server staff can post in this channel." });
+  const messages = readJson(SERVER_MESSAGES_FILE, []);
+  const item = { id: crypto.randomUUID(), serverId: req.server.id, channelId, memberId: req.member.id, name: req.member.username, avatar: req.member.avatar || "", body, createdAt: new Date().toISOString() };
+  messages.push(item); writeJson(SERVER_MESSAGES_FILE, messages.slice(-10000)); res.status(201).json(item);
+});
+
 // Checkout intentionally stays disabled until a secure hosted payment provider is connected.
 app.post("/api/checkout", (req, res) => {
   res.status(503).json({ error: "Secure card checkout is not connected yet. Choose a payment provider and connect its hosted checkout." });
