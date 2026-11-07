@@ -300,6 +300,8 @@ app.put("/api/admin/announcements", requireAdmin, (req, res) => {
   res.json({ saved: true, count: cleaned.length });
 });
 app.get("/api/admin/orders", requireAdmin, (req, res) => res.json(readJson(ORDERS_FILE, [])));
+app.get("/api/admin/chat", requireAdmin, (req, res) => res.json(readJson(CHAT_FILE, []).slice(-200)));
+app.get("/api/admin/members", requireAdmin, (req, res) => res.json(readJson(MEMBERS_FILE, []).map(m => ({ id: m.id, username: m.username, avatar: m.avatar || "", createdAt: m.createdAt || null, status: m.status || "" }))));
 app.delete("/api/admin/chat/:id", requireAdmin, (req, res) => {
   const messages = readJson(CHAT_FILE, []).filter(m => m.id !== req.params.id);
   writeJson(CHAT_FILE, messages);
