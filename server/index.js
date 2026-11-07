@@ -819,6 +819,7 @@ app.post("/api/servers/:serverId/messages", requireMember, requireServerMember, 
 /* Server member roles, moderation actions and member-submitted reports. */
 const SERVER_REPORTS_FILE = path.join(DATA_DIR, "server-reports.json");
 if (!fs.existsSync(SERVER_REPORTS_FILE)) writeJson(SERVER_REPORTS_FILE, []);
+app.get("/api/servers/:serverId/directory", requireMember, requireServerMember, (req, res) => { const members=readJson(MEMBERS_FILE,[]); res.json(req.server.members.filter(x=>x.memberId!==req.member.id).map(x=>{const m=members.find(v=>v.id===x.memberId);return m?{id:m.id,username:m.username,role:x.role}:null}).filter(Boolean)); });
 app.get("/api/servers/:serverId/members", requireMember, requireServerMember, requireServerManager, (req, res) => {
   const members = readJson(MEMBERS_FILE, []);
   res.json(req.server.members.map(entry => { const m = members.find(x => x.id === entry.memberId); return m ? { id: m.id, username: m.username, avatar: m.avatar || "", role: entry.role, joinedAt: entry.joinedAt } : null; }).filter(Boolean));
