@@ -344,7 +344,7 @@ app.put("/api/admin/announcements", requireAdmin, (req, res) => {
   res.json({ saved: true, count: cleaned.length });
 });
 app.get("/api/admin/orders", requireAdmin, (req, res) => res.json(readJson(ORDERS_FILE, [])));
-app.get("/api/admin/chat", requireAdmin, (req, res) => res.json(readJson(CHAT_FILE, []).slice(-200)));
+app.get("/api/admin/chat", requireAdmin, (req, res) => { const channelId=String(req.query.channel||"general"); if(!COMMUNITY_CHANNELS.some(c=>c.id===channelId)) return res.status(404).json({error:"Channel not found."}); const messages=readJson(CHAT_FILE,[]).map(m=>({...m,channelId:m.channelId||"general"})).filter(m=>m.channelId===channelId).slice(-100); res.json(messages); });
 app.get("/api/admin/members", requireAdmin, (req, res) => res.json(readJson(MEMBERS_FILE, []).map(m => ({ id: m.id, username: m.username, avatar: m.avatar || "", createdAt: m.createdAt || null, status: m.status || "" }))));
 app.delete("/api/admin/members/:id/avatar", requireAdmin, (req, res) => {
   const members = readJson(MEMBERS_FILE, []);
@@ -420,6 +420,7 @@ const COMMUNITY_CHANNELS = [
   { id: "media", name: "media", topic: "Share images and GIFs", category: "TEXT CHANNELS" }
 ];
 app.get("/api/channels", requireMember, (req, res) => res.json(COMMUNITY_CHANNELS));
+app.post("/api/admin/chat", requireAdmin, (req,res)=>{ const body=String(req.body.body||"").trim().slice(0,2000); if(!body)return res.status(400).json({error:"Write an announcement first."}); const message={id:crypto.randomUUID(),channelId:"announcements",memberId:"owner",name:"Owner",avatar:"",body,attachment:"",reactions:{},replyTo:"",editedAt:"",createdAt:new Date().toISOString()}; const messages=readJson(CHAT_FILE,[]); messages.push(message); writeJson(CHAT_FILE,messages.slice(-500)); res.status(201).json(message); });
 app.get("/api/chat", requireMember, (req, res) => {
   const channelId = String(req.query.channel || "general");
   if (!COMMUNITY_CHANNELS.some(c => c.id === channelId)) return res.status(404).json({ error: "Channel not found." });
