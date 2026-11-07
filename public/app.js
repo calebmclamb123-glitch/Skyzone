@@ -1,11 +1,12 @@
 const $ = (s) => document.querySelector(s);
+const SKYZONE_DISCORD = "https://discord.gg/QVR7E9jgUN";
 const money = (cents) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(cents / 100);
 
 async function loadConfig() {
   try {
     const cfg = await fetch("/api/config").then(r => r.json());
     ["#discordTop", "#discordHero", "#discordBottom"].forEach(sel => {
-      const el = $(sel); if (el) el.href = cfg.discordInviteUrl || "#";
+      const el = $(sel); if (el) el.href = cfg.discordInviteUrl && cfg.discordInviteUrl !== "#" ? cfg.discordInviteUrl : SKYZONE_DISCORD;
     });
   } catch {}
 }
