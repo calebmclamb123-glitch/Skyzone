@@ -1,6 +1,6 @@
 const member$=s=>document.querySelector(s);
 const authPanel=member$("#memberAuth"),profilePanel=member$("#memberProfile"),chatSignInNotice=member$("#chatSignInNotice"),loginForm=member$("#memberLoginForm"),registerForm=member$("#memberRegisterForm"),chatForm=member$("#chatForm"),messagesBox=member$("#chatMessages"),authStatus=member$("#memberAuthStatus"),chatStatus=member$("#chatStatus");
-let currentMember=null,selectedAttachment=null,currentChannel="general",replyingTo="";
+let currentMember=null,selectedAttachment=null,currentChannel="general",replyingTo="",activeFriendId="";
 async function memberApi(url,options={}){const response=await fetch(url,{...options,credentials:"same-origin",headers:{"Content-Type":"application/json",...(options.headers||{})}});let data={};try{data=await response.json()}catch{}if(!response.ok)throw new Error(data.error||"Something went wrong.");return data}
 function memberEsc(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function setMember(member){currentMember=member;authPanel.hidden=!!member;profilePanel.hidden=!member;chatSignInNotice.hidden=!!member;chatForm.hidden=!member||currentChannel==="announcements";if(member){member$("#memberProfileName").textContent=member.username;const preview=member$("#memberAvatarPreview");preview.src=member.avatar||"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='32' fill='%236b58a8'/%3E%3Ctext x='50%25' y='55%25' font-size='28' text-anchor='middle' fill='white'%3E"+encodeURIComponent(member.username.slice(0,1).toUpperCase())+"%3C/text%3E%3C/svg%3E";member$("#chatForm input[name=body]").placeholder="Message #general";}else{messagesBox.innerHTML='<p class="chat-empty">Log in or create a free account to view and join the conversation.</p>';}}
@@ -24,6 +24,30 @@ async function refreshMemberChat(){if(!currentMember)return;try{const messages=a
 async function switchChatChannel(channel){
  currentChannel=channel;
  member$("#cancelChatReply").addEventListener("click",()=>{replyingTo="";member$("#chatReplyStatus").hidden=true});
+function friendEsc(s){return memberEsc(s)}
+async function refreshFriends(){
+ const data=await memberApi("/api/friends");
+ member$("#incomingFriends").innerHTML=data.incoming.length?data.incoming.map(f=>'<div class="friend-row"><span>'+friendEsc(f.username)+'</span><button data-accept="'+f.requestId+'">Accept</button><button data-decline="'+f.requestId+'">Ignore</button></div>').join(""):'<small>No pending requests.</small>';
+ member$("#friendsList").innerHTML=data.friends.length?data.friends.map(f=>'<div class="friend-row"><button class="friend-open" data-friend="'+f.id+'">'+friendEsc(f.username)+'</button><button data-unfriend="'+f.id+'">Remove</button></div>').join(""):'<small>No friends yet. Send a request above.</small>';
+}
+async function refreshDM(){
+ if(!activeFriendId)return;
+ const messages=await memberApi("/api/dms?with="+encodeURIComponent(activeFriendId));
+ member$("#dmMessages").innerHTML=messages.map(m=>'<div class="dm-message '+(m.from===currentMember.id?'mine':'')+'"><p>'+friendEsc(m.body)+'</p><small>'+new Date(m.createdAt).toLocaleString()+'</small></div>').join("")||'<small>No messages yet. Say hello!</small>';
+ member$("#dmMessages").scrollTop=member$("#dmMessages").scrollHeight;
+}
+
+member$("#openFriendsPanel").addEventListener("click",async()=>{member$("#friendsPanel").hidden=false;try{await refreshFriends()}catch(e){member$("#friendsStatus").textContent=e.message}});
+member$("#closeFriendsPanel").addEventListener("click",()=>member$("#friendsPanel").hidden=true);
+member$("#addFriendForm").addEventListener("submit",async e=>{e.preventDefault();const f=new FormData(e.currentTarget);try{const r=await memberApi("/api/friends/requests",{method:"POST",body:JSON.stringify({username:f.get("username")})});member$("#friendsStatus").textContent="Friend request sent to "+r.username+".";e.currentTarget.reset();await refreshFriends()}catch(err){member$("#friendsStatus").textContent=err.message}});
+member$("#friendsPanel").addEventListener("click",async e=>{const a=e.target.closest("[data-accept]"),d=e.target.closest("[data-decline]"),u=e.target.closest("[data-unfriend]"),open=e.target.closest("[data-friend]");try{
+ if(a){await memberApi("/api/friends/requests/"+a.dataset.accept+"/accept",{method:"POST"});await refreshFriends()}
+ if(d){await memberApi("/api/friends/requests/"+d.dataset.decline,{method:"DELETE"});await refreshFriends()}
+ if(u){await memberApi("/api/friends/"+u.dataset.unfriend,{method:"DELETE"});activeFriendId="";member$("#dmPanel").hidden=true;await refreshFriends()}
+ if(open){activeFriendId=open.dataset.friend;member$("#dmPanel").hidden=false;member$("#dmHeading").textContent="Direct message · "+open.textContent;await refreshDM()}
+ }catch(err){member$("#friendsStatus").textContent=err.message}});
+member$("#dmForm").addEventListener("submit",async e=>{e.preventDefault();if(!activeFriendId)return;const body=e.currentTarget.elements.body.value.trim();try{await memberApi("/api/dms",{method:"POST",body:JSON.stringify({to:activeFriendId,body})});e.currentTarget.reset();await refreshDM()}catch(err){member$("#friendsStatus").textContent=err.message}});
+
 document.querySelectorAll("[data-channel]").forEach(b=>b.classList.toggle("active",b.dataset.channel===channel));
  const names={general:"Everyday community conversation",announcements:"Community updates and news",media:"Share images and GIFs"};
  member$("#chatChannelName").textContent=channel;member$("#chatWelcomeChannel").textContent="#"+channel;member$("#chatChannelTopic").textContent=names[channel]||"Community channel";
