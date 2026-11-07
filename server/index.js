@@ -276,6 +276,137 @@ app.get("/api/members/online", requireMember, (req,res)=>{
   .map(m=>({id:m.id,username:m.username,avatar:m.avatar||""}));
  res.json({count:online.length,members:online});
 });
+
+// Official account connections. Provider secrets stay in Render environment variables;
+// user tokens are encrypted before they are written to the member data file.
+function oauthRedirectUri(provider, req) {
+  const envKey = provider.toUpperCase() + "_REDIRECT_URI";
+  return process.env[envKey] || ((process.env.APP_BASE_URL || (req.protocol + "://" + req.get("host"))).replace(/\/$/, "") + "/api/connections/" + provider + "/callback");
+}
+function oauthProvider(provider, req) {
+  const redirectUri = oauthRedirectUri(provider, req);
+  if (provider === "spotify" && process.env.SPOTIFY_CLIENT_ID && process.env.SPOTIFY_CLIENT_SECRET) {
+    return { clientId: process.env.SPOTIFY_CLIENT_ID, clientSecret: process.env.SPOTIFY_CLIENT_SECRET, redirectUri,
+      authorize: "https://accounts.spotify.com/authorize", token: "https://accounts.spotify.com/api/token",
+      scopes: "user-read-private user-read-email user-read-currently-playing user-read-playback-state" };
+  }
+  if (provider === "youtube" && (process.env.YOUTUBE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID) && (process.env.YOUTUBE_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET)) {
+    return { clientId: process.env.YOUTUBE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID, clientSecret: process.env.YOUTUBE_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET, redirectUri,
+      authorize: "https://accounts.google.com/o/oauth2/v2/auth", token: "https://oauth2.googleapis.com/token",
+      scopes: "openid email profile https://www.googleapis.com/auth/youtube.readonly" };
+  }
+  if (provider === "tiktok" && process.env.TIKTOK_CLIENT_KEY && process.env.TIKTOK_CLIENT_SECRET) {
+    return { clientId: process.env.TIKTOK_CLIENT_KEY, clientSecret: process.env.TIKTOK_CLIENT_SECRET, redirectUri,
+      authorize: "https://www.tiktok.com/v2/auth/authorize/", token: "https://open.tiktokapis.com/v2/oauth/token/",
+      scopes: "user.info.basic" };
+  }
+  return null;
+}
+function encryptConnectionTokens(value) {
+  const key = crypto.scryptSync(process.env.SESSION_SECRET, "skyzone-connection-tokens-v1", 32);
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv("aes-256-gcm", key, iv);
+  const encrypted = Buffer.concat([cipher.update(JSON.stringify(value), "utf8"), cipher.final()]);
+  return { iv: iv.toString("base64"), tag: cipher.getAuthTag().toString("base64"), data: encrypted.toString("base64") };
+}
+function decryptConnectionTokens(value) {
+  const key = crypto.scryptSync(process.env.SESSION_SECRET, "skyzone-connection-tokens-v1", 32);
+  const decipher = crypto.createDecipheriv("aes-256-gcm", key, Buffer.from(value.iv, "base64"));
+  decipher.setAuthTag(Buffer.from(value.tag, "base64"));
+  return JSON.parse(Buffer.concat([decipher.update(Buffer.from(value.data, "base64")), decipher.final()]).toString("utf8"));
+}
+function connectionStateCookie(provider) { return "skyzone_oauth_" + provider; }
+function safeConnectionSummary(member) {
+  const all = member.connectedAccounts || {};
+  const result = {};
+  for (const [provider, item] of Object.entries(all)) result[provider] = { provider, displayName: item.displayName || "", avatar: item.avatar || "", linkedAt: item.linkedAt || "" };
+  return result;
+}
+app.get("/api/connections", requireMember, (req, res) => {
+  const member = readJson(MEMBERS_FILE, []).find(m => m.id === req.member.id);
+  res.json(safeConnectionSummary(member || {}));
+});
+app.get("/api/connections/:provider/start", requireMember, (req, res) => {
+  const provider = String(req.params.provider || "").toLowerCase();
+  if (!["spotify", "youtube", "tiktok"].includes(provider)) return res.status(404).send("This connection is not available yet.");
+  const config = oauthProvider(provider, req);
+  if (!config) return res.status(503).send("<!doctype html><meta charset=utf-8><title>Skyzone connection setup</title><main style='font:16px system-ui;max-width:620px;margin:12vh auto;padding:24px;color:#eee;background:#20232a;border-radius:14px'><h1>Connect " + provider + " to Skyzone</h1><p>This service needs its official developer app credentials before its authorization screen can open.</p><p>The site owner must add the provider Client ID and Client Secret in Render Environment, then register this exact callback URL:</p><code>" + oauthRedirectUri(provider, req) + "</code><p><a style='color:#bca8ff' href='/#account'>Return to Skyzone</a></p></main>");
+  const state = crypto.randomBytes(32).toString("hex");
+  const cookieValue = state + "." + sign(state + "|" + req.member.id);
+  res.cookie(connectionStateCookie(provider), cookieValue, { httpOnly: true, secure: req.secure, sameSite: "lax", maxAge: 10 * 60 * 1000, path: "/" });
+  const url = new URL(config.authorize);
+  if (provider === "tiktok") {
+    url.search = new URLSearchParams({ client_key: config.clientId, response_type: "code", scope: config.scopes, redirect_uri: config.redirectUri, state, disable_auto_auth: "1" }).toString();
+  } else {
+    url.search = new URLSearchParams({ client_id: config.clientId, response_type: "code", redirect_uri: config.redirectUri, scope: config.scopes, state, ...(provider === "youtube" ? { access_type: "offline", include_granted_scopes: "true", prompt: "consent" } : { show_dialog: "true" }) }).toString();
+  }
+  res.redirect(url.toString());
+});
+app.get("/api/connections/:provider/callback", async (req, res) => {
+  const provider = String(req.params.provider || "").toLowerCase();
+  if (!["spotify", "youtube", "tiktok"].includes(provider)) return res.status(404).send("Connection not found.");
+  const cookieName = connectionStateCookie(provider);
+  const cookie = readCookie(req, cookieName);
+  res.clearCookie(cookieName, { httpOnly: true, secure: req.secure, sameSite: "lax", path: "/" });
+  const parts = cookie.split(".");
+  const state = String(req.query.state || "");
+  if (parts.length !== 2 || !state || parts[0] !== state) return res.status(400).send("Skyzone could not verify this authorization request. Please return to Skyzone and try again.");
+  const member = verifyMemberSession(req);
+  if (!member || !crypto.timingSafeEqual(Buffer.from(parts[1]), Buffer.from(sign(state + "|" + member.id)))) return res.status(401).send("Your Skyzone session expired. Sign in again and reconnect your account.");
+  if (req.query.error) return res.redirect("/#account");
+  const config = oauthProvider(provider, req);
+  if (!config || !req.query.code) return res.status(503).send("The connection could not be completed. Check the provider setup and try again.");
+  try {
+    const form = new URLSearchParams({ grant_type: "authorization_code", code: String(req.query.code), redirect_uri: config.redirectUri });
+    if (provider === "tiktok") {
+      form.set("client_key", config.clientId); form.set("client_secret", config.clientSecret);
+    } else {
+      form.set("client_id", config.clientId); form.set("client_secret", config.clientSecret);
+    }
+    const headers = { "Content-Type": "application/x-www-form-urlencoded" };
+    if (provider === "spotify") headers.Authorization = "Basic " + Buffer.from(config.clientId + ":" + config.clientSecret).toString("base64");
+    const tokenResponse = await fetch(config.token, { method: "POST", headers, body: form, signal: AbortSignal.timeout(15000) });
+    const tokens = await tokenResponse.json();
+    if (!tokenResponse.ok || !tokens.access_token) throw new Error("The provider token exchange was rejected.");
+    let profile = {};
+    if (provider === "spotify") {
+      const response = await fetch("https://api.spotify.com/v1/me", { headers: { Authorization: "Bearer " + tokens.access_token }, signal: AbortSignal.timeout(10000) });
+      if (response.ok) profile = await response.json();
+    } else if (provider === "youtube") {
+      const response = await fetch("https://openidconnect.googleapis.com/v1/userinfo", { headers: { Authorization: "Bearer " + tokens.access_token }, signal: AbortSignal.timeout(10000) });
+      if (response.ok) profile = await response.json();
+    } else {
+      const response = await fetch("https://open.tiktokapis.com/v2/user/info/?fields=open_id,display_name,avatar_url", { headers: { Authorization: "Bearer " + tokens.access_token }, signal: AbortSignal.timeout(10000) });
+      if (response.ok) profile = (await response.json()).data?.user || {};
+    }
+    const members = readJson(MEMBERS_FILE, []);
+    const index = members.findIndex(m => m.id === member.id);
+    if (index < 0) throw new Error("Skyzone member account was not found.");
+    if (!members[index].connectedAccounts) members[index].connectedAccounts = {};
+    members[index].connectedAccounts[provider] = {
+      providerId: String(profile.id || profile.sub || profile.open_id || ""),
+      displayName: String(profile.display_name || profile.display_name || profile.name || profile.email || profile.id || provider).slice(0, 100),
+      avatar: String(profile.images?.[0]?.url || profile.avatar_url || profile.picture || "").slice(0, 1000),
+      linkedAt: new Date().toISOString(),
+      tokens: encryptConnectionTokens({ accessToken: tokens.access_token, refreshToken: tokens.refresh_token || "", expiresAt: Date.now() + Number(tokens.expires_in || 3600) * 1000, scope: tokens.scope || "" })
+    };
+    writeJson(MEMBERS_FILE, members);
+    res.redirect("/#account");
+  } catch (error) {
+    console.error("Skyzone " + provider + " connection failed:", error.message);
+    res.status(502).send("Skyzone could not finish connecting this account. Return to Skyzone and try again.");
+  }
+});
+app.delete("/api/connections/:provider", requireMember, (req, res) => {
+  const provider = String(req.params.provider || "").toLowerCase();
+  const members = readJson(MEMBERS_FILE, []);
+  const index = members.findIndex(m => m.id === req.member.id);
+  if (index < 0) return res.status(404).json({ error: "Account not found." });
+  if (members[index].connectedAccounts) delete members[index].connectedAccounts[provider];
+  writeJson(MEMBERS_FILE, members);
+  res.json({ connected: false });
+});
+
 app.get("/api/products", (req, res) => res.json(readJson(PRODUCTS_FILE, starterProducts).filter(p => p.active)));
 app.get("/api/announcements", (req, res) => res.json(readJson(ANNOUNCEMENTS_FILE, starterAnnouncements).filter(a => a.active)));
 
