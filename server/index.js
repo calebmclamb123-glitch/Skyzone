@@ -16,6 +16,14 @@ const CHAT_FILE = path.join(DATA_DIR, "chat.json");
 const MEMBERS_FILE = path.join(DATA_DIR, "members.json");
 const UPLOADS_FILE = path.join(DATA_DIR, "uploads.json");
 fs.mkdirSync(DATA_DIR, { recursive: true });
+const SESSION_SECRET_FILE = path.join(DATA_DIR, ".session-secret");
+if (!process.env.SESSION_SECRET) {
+  try { process.env.SESSION_SECRET = fs.readFileSync(SESSION_SECRET_FILE, "utf8").trim(); }
+  catch {
+    process.env.SESSION_SECRET = crypto.randomBytes(48).toString("hex");
+    try { fs.writeFileSync(SESSION_SECRET_FILE, process.env.SESSION_SECRET, { mode: 0o600 }); } catch {}
+  }
+}
 
 const starterProducts = [
   { id: "starter-pack", name: "Starter Digital Pack", price: 499, category: "Digital Packs", description: "A sample digital product. Replace this with your own offer.", image: "", active: true },
