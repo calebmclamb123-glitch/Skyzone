@@ -613,6 +613,36 @@ app.post("/api/chat/:id/reactions", requireMember, (req, res) => {
   writeJson(CHAT_FILE, messages);
   res.json({ reactions: item.reactions });
 });
+
+app.get("/api/chat/search", requireMember, (req,res)=>{
+ const channelId=String(req.query.channel||"general");
+ const query=String(req.query.q||"").trim().toLowerCase().slice(0,100);
+ if(!COMMUNITY_CHANNELS.some(c=>c.id===channelId))return res.status(404).json({error:"Channel not found."});
+ if(query.length<2)return res.status(400).json({error:"Enter at least 2 characters to search."});
+ const found=readJson(CHAT_FILE,[]).map(m=>({...m,channelId:m.channelId||"general"}))
+  .filter(m=>m.channelId===channelId&&(String(m.body||"").toLowerCase().includes(query)||String(m.name||"").toLowerCase().includes(query)))
+  .slice(-100);
+ res.json(found);
+});
+app.get("/api/admin/chat/pins", requireAdmin, (req,res)=>{
+ const channelId=String(req.query.channel||"general");
+ res.json(readJson(CHAT_FILE,[]).filter(m=>(m.channelId||"general")===channelId&&m.pinned).slice(-50));
+});
+app.post("/api/admin/chat/:id/pin", requireAdmin, (req,res)=>{
+ const messages=readJson(CHAT_FILE,[]);
+ const item=messages.find(m=>m.id===req.params.id);
+ if(!item)return res.status(404).json({error:"Message not found."});
+ item.pinned=true;item.pinnedAt=new Date().toISOString();item.pinnedBy=req.adminEmail||"Owner";
+ writeJson(CHAT_FILE,messages);res.json({pinned:true});
+});
+app.delete("/api/admin/chat/:id/pin", requireAdmin, (req,res)=>{
+ const messages=readJson(CHAT_FILE,[]);
+ const item=messages.find(m=>m.id===req.params.id);
+ if(!item)return res.status(404).json({error:"Message not found."});
+ item.pinned=false;delete item.pinnedAt;delete item.pinnedBy;
+ writeJson(CHAT_FILE,messages);res.json({pinned:false});
+});
+
 app.get("/api/admin/uploads", requireAdmin, (req, res) => res.json(readJson(UPLOADS_FILE, [])));
 app.post("/api/admin/uploads", requireAdmin, (req, res) => {
   const name = String(req.body.name || "").trim().slice(0, 100);
