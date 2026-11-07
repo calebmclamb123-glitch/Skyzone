@@ -437,3 +437,12 @@ body{
 
 /* Discord-like message composer and formatting */
 .chat-composer{display:flex;flex:1;min-width:0;flex-direction:column;gap:5px}.chat-format-toolbar{display:flex;gap:4px;padding:0 4px}.chat-format-toolbar button{border:1px solid rgba(255,255,255,.1);background:#171629;color:#d5d1e8;border-radius:5px;min-width:27px;height:24px;font-size:12px;cursor:pointer}.chat-format-toolbar button:hover{border-color:#9478ef;color:white}.chat-input-wrap textarea{width:100%;resize:vertical;min-height:38px;max-height:130px;border:0;outline:0;background:transparent;color:inherit;font:inherit;padding:10px 12px}.chat-message-content p code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;background:#171629;border:1px solid rgba(255,255,255,.1);border-radius:4px;padding:2px 5px}.chat-message-content pre{overflow:auto;padding:10px;border-radius:7px;background:#10101c}
+
+.chat-header-tools{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.chat-header-tools input{width:min(210px,35vw);background:#111123;color:var(--text);border:1px solid var(--line);border-radius:7px;padding:8px 10px}
+.chat-header-tools button{background:#211d38;color:#ddd5ff;border:1px solid var(--line);border-radius:7px;padding:8px 10px;cursor:pointer}
+.chat-pinned-label{display:block;color:#c5a7ff;font-size:11px;margin:5px 0}
+.chat-message-pin{border:1px solid rgba(180,150,255,.3);background:#211d38;color:#d9caff;border-radius:5px;padding:4px 7px;font-size:11px;cursor:pointer}
+.chat-message-pin:hover{border-color:#bca8ff}
+.chat-header-tools{margin-left:auto}
+@media(max-width:650px){.chat-main-header{align-items:flex-start;gap:10px;flex-wrap:wrap}.chat-header-tools{width:100%;margin-left:0}.chat-header-tools input{flex:1;width:120px}}
