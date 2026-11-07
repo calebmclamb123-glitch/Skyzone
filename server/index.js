@@ -814,6 +814,54 @@ app.post("/api/servers/:serverId/messages", requireMember, requireServerMember, 
   messages.push(item); writeJson(SERVER_MESSAGES_FILE, messages.slice(-10000)); res.status(201).json(item);
 });
 
+
+/* Server member roles, moderation actions and member-submitted reports. */
+const SERVER_REPORTS_FILE = path.join(DATA_DIR, "server-reports.json");
+if (!fs.existsSync(SERVER_REPORTS_FILE)) writeJson(SERVER_REPORTS_FILE, []);
+app.get("/api/servers/:serverId/members", requireMember, requireServerMember, requireServerManager, (req, res) => {
+  const members = readJson(MEMBERS_FILE, []);
+  res.json(req.server.members.map(entry => { const m = members.find(x => x.id === entry.memberId); return m ? { id: m.id, username: m.username, avatar: m.avatar || "", role: entry.role, joinedAt: entry.joinedAt } : null; }).filter(Boolean));
+});
+app.patch("/api/servers/:serverId/members/:memberId/role", requireMember, requireServerMember, requireServerManager, (req, res) => {
+  const actor = getServerMembership(req.server, req.member.id);
+  if (actor.role !== "owner") return res.status(403).json({ error: "Only the server owner can change staff roles." });
+  const role = String(req.body.role || "");
+  if (!["admin", "moderator", "member"].includes(role)) return res.status(400).json({ error: "Choose admin, moderator, or member." });
+  const servers = readJson(SERVERS_FILE, []); const server = servers.find(s => s.id === req.server.id);
+  const target = server.members.find(m => m.memberId === req.params.memberId);
+  if (!target || target.role === "owner") return res.status(404).json({ error: "Member not found or cannot be changed." });
+  target.role = role; writeJson(SERVERS_FILE, servers); res.json({ updated: true, role });
+});
+app.delete("/api/servers/:serverId/members/:memberId", requireMember, requireServerMember, requireServerManager, (req, res) => {
+  const actor = getServerMembership(req.server, req.member.id);
+  const target = getServerMembership(req.server, req.params.memberId);
+  if (!target || target.role === "owner" || (target.role === "admin" && actor.role !== "owner")) return res.status(403).json({ error: "You cannot remove this member." });
+  const servers = readJson(SERVERS_FILE, []); const server = servers.find(s => s.id === req.server.id);
+  server.members = server.members.filter(m => m.memberId !== req.params.memberId);
+  server.bannedMemberIds = [...new Set([...(server.bannedMemberIds || []), req.params.memberId])];
+  writeJson(SERVERS_FILE, servers); res.json({ removed: true, banned: true });
+});
+app.post("/api/servers/:serverId/reports", requireMember, requireServerMember, (req, res) => {
+  const targetId = String(req.body.memberId || "");
+  const reason = String(req.body.reason || "").trim().slice(0, 500);
+  if (!targetId || targetId === req.member.id || !getServerMembership(req.server, targetId)) return res.status(400).json({ error: "Choose a valid member to report." });
+  if (reason.length < 5) return res.status(400).json({ error: "Please explain the concern in at least 5 characters." });
+  const reports = readJson(SERVER_REPORTS_FILE, []);
+  const report = { id: crypto.randomUUID(), serverId: req.server.id, reporterId: req.member.id, reportedMemberId: targetId, reason, status: "open", createdAt: new Date().toISOString() };
+  reports.push(report); writeJson(SERVER_REPORTS_FILE, reports.slice(-5000)); res.status(201).json({ submitted: true });
+});
+app.get("/api/servers/:serverId/reports", requireMember, requireServerMember, requireServerManager, (req, res) => {
+  const members = readJson(MEMBERS_FILE, []);
+  const reports = readJson(SERVER_REPORTS_FILE, []).filter(r => r.serverId === req.server.id).map(r => ({ ...r, reporter: members.find(m => m.id === r.reporterId)?.username || "Former member", reported: members.find(m => m.id === r.reportedMemberId)?.username || "Former member" }));
+  res.json(reports);
+});
+app.patch("/api/servers/:serverId/reports/:reportId", requireMember, requireServerMember, requireServerManager, (req, res) => {
+  const reports = readJson(SERVER_REPORTS_FILE, []); const report = reports.find(r => r.id === req.params.reportId && r.serverId === req.server.id);
+  if (!report) return res.status(404).json({ error: "Report not found." });
+  report.status = req.body.status === "resolved" ? "resolved" : "open"; report.reviewedAt = new Date().toISOString(); report.reviewedBy = req.member.id;
+  writeJson(SERVER_REPORTS_FILE, reports); res.json({ updated: true, status: report.status });
+});
+
 // Checkout intentionally stays disabled until a secure hosted payment provider is connected.
 app.post("/api/checkout", (req, res) => {
   res.status(503).json({ error: "Secure card checkout is not connected yet. Choose a payment provider and connect its hosted checkout." });
