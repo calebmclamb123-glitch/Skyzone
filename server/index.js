@@ -240,7 +240,7 @@ app.post("/api/members/presence", requireMember, (req,res)=>{
 });
 app.get("/api/members/online", requireMember, (req,res)=>{
  const cutoff=Date.now()-2*60*1000;
- const online=readJson(MEMBERS_FILE,[]).filter(m=>m.lastSeenAt&&Date.parse(m.lastSeenAt)>cutoff)
+ const online=readJson(MEMBERS_FILE,[]).filter(m=>m.settings?.showOnline!==false&&m.lastSeenAt&&Date.parse(m.lastSeenAt)>cutoff)
   .map(m=>({id:m.id,username:m.username,avatar:m.avatar||""}));
  res.json({count:online.length,members:online});
 });
