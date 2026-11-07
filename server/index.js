@@ -8,7 +8,7 @@ const { OAuth2Client } = require("google-auth-library");
 const app = express();
 app.set("trust proxy", 1);
 const PORT = process.env.PORT || 3000;
-const DATA_DIR = path.join(__dirname, "data");
+const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, "data");
 const PRODUCTS_FILE = path.join(DATA_DIR, "products.json");
 const ORDERS_FILE = path.join(DATA_DIR, "orders.json");
 const ANNOUNCEMENTS_FILE = path.join(DATA_DIR, "announcements.json");
