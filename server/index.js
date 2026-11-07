@@ -759,6 +759,7 @@ app.post("/api/servers/join", requireMember, (req, res) => {
   const servers = readJson(SERVERS_FILE, []);
   const server = servers.find(s => s.inviteCode === code);
   if (!server) return res.status(404).json({ error: "That invite code is invalid or expired." });
+  if ((server.bannedMemberIds || []).includes(req.member.id)) return res.status(403).json({ error: "You are banned from this server." });
   if (getServerMembership(server, req.member.id)) return res.json(publicServer(server, req.member.id));
   if (server.members.length >= 5000) return res.status(400).json({ error: "This server is full." });
   server.members.push({ memberId: req.member.id, role: "member", joinedAt: new Date().toISOString() });
