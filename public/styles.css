@@ -497,3 +497,36 @@ body{
 
 .server-overview-panel{background:#232428;border:1px solid #3b3d44;border-radius:10px;margin:12px 0;padding:22px;color:#dbdee1}
 .server-overview-top{display:flex;align-items:center;gap:16px;padding-bottom:18px;border-bottom:1px solid #3b3d44}.server-overview-icon{width:60px;height:60px;border-radius:16px;background:linear-gradient(145deg,#5865f2,#8b5cf6);display:grid;place-items:center;font-size:26px;font-weight:800}.server-overview-top span{font-size:10px;letter-spacing:1.5px;color:#aeb3bb}.server-overview-top h2{font-size:22px;margin:4px 0}.server-overview-top p,.overview-help{font-size:12px;color:#aeb3bb}.server-overview-top>button{margin-left:auto;background:transparent;border:0;color:#ddd;font-size:24px;cursor:pointer}.server-overview-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:16px 0}.server-overview-stats>div{background:#2b2d31;border-radius:8px;padding:12px}.server-overview-stats b,.server-overview-stats small{display:block}.server-overview-stats small{font-size:10px;color:#aeb3bb}.overview-channel{display:inline-block;background:#2b2d31;border-radius:5px;padding:7px;margin:3px;font-size:11px}.voice-room-card{margin:20px 0;padding:24px;text-align:center;background:#232428;border:1px solid #3b3d44;border-radius:12px;color:#dbdee1}.voice-room-card p,.voice-room-card small{display:block;color:#aeb3bb;font-size:12px;line-height:1.5}.voice-room-card button{background:#5865f2;color:white;border:0;border-radius:6px;padding:11px 18px;cursor:pointer}.voice-room-card iframe{width:100%;height:450px;border:0;border-radius:9px;margin-top:15px}
+
+
+/* Skyzone community workspace upgrades */
+.channel-create-category{width:calc(100% - 22px);margin:10px 11px;padding:9px 10px;border:1px dashed rgba(174,165,255,.25);border-radius:8px;background:transparent;color:#aaa5c5;text-align:left;font:600 12px var(--font);cursor:pointer}
+.channel-create-category:hover{background:#ffffff0a;color:#fff;border-color:#9b72ff}
+.channel-row{display:flex;align-items:center;gap:3px;min-width:0}
+.channel-row .chat-channel{flex:1;min-width:0;text-align:left}
+.channel-edit-button,.channel-delete-button{flex:0 0 25px;width:25px;height:26px;border:0;border-radius:6px;background:transparent;color:#8985a5;font-size:17px;cursor:pointer;opacity:.45}
+.channel-row:hover .channel-edit-button,.channel-row:hover .channel-delete-button,.channel-edit-button:focus-visible,.channel-delete-button:focus-visible{opacity:1}
+.channel-edit-button:hover{background:#ffffff12;color:#fff}
+.channel-delete-button:hover{background:#a33c4b33;color:#ff9da8}
+.skyzone-dialog[hidden]{display:none}
+.skyzone-dialog{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:20px}
+.skyzone-dialog-backdrop{position:absolute;inset:0;background:#05050bd9;backdrop-filter:blur(8px)}
+.skyzone-dialog-card{position:relative;width:min(480px,100%);max-height:min(85vh,760px);overflow:auto;padding:30px;border:1px solid rgba(174,165,255,.2);border-radius:18px;background:linear-gradient(145deg,#1a1930,#10101e);box-shadow:0 24px 90px #000a}
+.skyzone-dialog-card h2{margin:10px 0 8px;font:700 26px var(--display);color:#fff}
+.dialog-description{margin:0 0 22px;color:#aaa7c2;font-size:13px;line-height:1.6}
+.skyzone-dialog-close{position:absolute;right:15px;top:12px;width:34px;height:34px;border:0;border-radius:9px;background:#ffffff0b;color:#d7d3ec;font-size:24px;cursor:pointer}
+.skyzone-dialog-form{display:grid;gap:14px}
+.skyzone-dialog-form label,.profile-customization label{display:grid;gap:7px;color:#c7c3df;font-size:12px;font-weight:600}
+.skyzone-dialog-form input,.skyzone-dialog-form select,.profile-customization input,.profile-customization select{width:100%;min-height:42px;padding:10px 12px;border:1px solid rgba(174,165,255,.2);border-radius:9px;background:#0c0c19;color:#fff;font:14px var(--font);outline:none}
+.skyzone-dialog-form input:focus,.skyzone-dialog-form select:focus,.profile-customization input:focus,.profile-customization select:focus{border-color:#9b72ff;box-shadow:0 0 0 3px #9b72ff20}
+.dialog-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:8px}
+.dialog-cancel{padding:11px 16px;border:1px solid #ffffff20;border-radius:9px;background:#ffffff08;color:#ddd;font-weight:700;cursor:pointer}
+.dialog-error{min-height:16px;margin:0;color:#ff9ba7;font-size:12px}
+.profile-customization{display:grid;gap:13px;margin:20px 0;padding:18px;border:1px solid rgba(174,165,255,.16);border-radius:12px;background:#ffffff05}
+.profile-customization h4{margin:0;color:#eee;font:700 14px var(--display)}
+.member-profile-shell{font-family:var(--member-font,var(--font))}
+.member-profile-shell[data-profile-effect="glow"] .member-profile-banner{box-shadow:inset 0 0 48px #9b72ff66,0 0 22px #9b72ff35}
+.member-profile-shell[data-profile-effect="aurora"] .member-profile-banner{background:linear-gradient(110deg,#152d48,#39205d,#163e48);background-size:200% 200%}
+.member-profile-shell[data-profile-effect="holo"] .member-profile-banner{background:linear-gradient(110deg,#48305f,#20536a,#68466c,#334b78);background-size:250% 250%}
+.member-profile-shell[data-profile-effect="sparkle"] .member-profile-banner{background:radial-gradient(circle at 20% 30%,#ffffff55 0 1px,transparent 2px),radial-gradient(circle at 70% 60%,#ffffff44 0 1px,transparent 2px),linear-gradient(120deg,#29204b,#172c4a)}
+@media(max-width:700px){.skyzone-dialog-card{padding:24px 18px}.channel-edit-button,.channel-delete-button{opacity:1}}
