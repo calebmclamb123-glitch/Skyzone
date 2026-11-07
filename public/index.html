@@ -26,8 +26,14 @@
 
   <section class="section-wrap account-section" id="account">
     <div class="account-heading"><div><div class="eyebrow">YOUR SKYZONE ID</div><h2>Your account. <span class="gradient-text">Your community.</span></h2><p>One free account for your Skyzone website profile and community chat.</p></div></div>
-    <div id="memberAuth" class="member-auth"><div class="member-auth-copy"><b>Sign in to Skyzone chat</b><span>Create a free account to chat and personalize your profile.</span></div><div class="member-auth-actions"><button id="showLogin" class="auth-tab active" type="button">Log in</button><button id="showRegister" class="auth-tab" type="button">Create account</button></div><form id="memberLoginForm" class="member-auth-form"><input name="email" type="email" autocomplete="email" required placeholder="Email address"><input name="password" type="password" autocomplete="current-password" required placeholder="Password"><button class="btn btn-primary" type="submit">Log in</button></form><form id="memberRegisterForm" class="member-auth-form" hidden><input name="username" maxlength="24" required placeholder="Username"><input name="email" type="email" autocomplete="email" required placeholder="Email address"><input name="password" type="password" minlength="10" maxlength="128" autocomplete="new-password" required placeholder="Password (10+ characters)"><button class="btn btn-primary" type="submit">Create free account</button></form><p id="memberAuthStatus" class="chat-status" role="status"></p></div>
-          <div id="memberProfile" class="member-profile" hidden><div class="member-profile-left"><img id="memberAvatarPreview" alt="Your profile picture"><div><b id="memberProfileName"></b><small>Signed in to Skyzone</small></div>
+    <div id="memberAuth" class="member-auth">
+      <div class="member-auth-copy"><b>Sign in to Skyzone</b><span>Create a free account for your website profile and community features.</span></div>
+      <div class="member-auth-actions"><button id="showLogin" class="auth-tab active" type="button">Log in</button><button id="showRegister" class="auth-tab" type="button">Create account</button></div>
+      <form id="memberLoginForm" class="member-auth-form"><input name="email" type="email" autocomplete="email" required placeholder="Email address"><input name="password" type="password" autocomplete="current-password" required placeholder="Password"><button class="btn btn-primary" type="submit">Log in</button></form>
+      <form id="memberRegisterForm" class="member-auth-form" hidden><input name="username" maxlength="24" required placeholder="Username"><input name="email" type="email" autocomplete="email" required placeholder="Email address"><input name="password" type="password" minlength="10" maxlength="128" autocomplete="new-password" required placeholder="Password (10+ characters)"><button class="btn btn-primary" type="submit">Create free account</button></form>
+      <p id="memberAuthStatus" class="chat-status" role="status"></p>
+    </div>
+    <div id="memberProfile" class="member-profile" hidden><div class="member-profile-left"><img id="memberAvatarPreview" alt="Your profile picture"><div><b id="memberProfileName"></b><small>Signed in to Skyzone</small></div></div><label class="avatar-upload-label">Change picture<input id="avatarFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif"></label><button id="memberLogout" type="button" class="auth-logout">Log out</button></div>
   </section>
 
   <main>
@@ -72,7 +78,7 @@
           <div class="chat-sidebar-footer"><span class="chat-mini-avatar">S</span><span><b>Skyzone</b><small>Website member</small></span></div>
         </aside>
         <section class="chat-main" aria-label="Skyzone general chat">
-          <div id="chatSignInNotice" class="chat-signin-notice">Sign in to your Skyzone account above to join the community chat.</div></div><label class="avatar-upload-label">Change picture<input id="avatarFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif"></label><button id="memberLogout" type="button" class="auth-logout">Log out</button></div>
+          <div id="chatSignInNotice" class="chat-signin-notice">Sign in to your Skyzone account above to join the community chat.</div>
           <div class="chat-main-header"><div class="chat-current-channel"><b>#</b><strong>general</strong></div><span class="chat-live"><i></i> COMMUNITY CHAT</span></div>
           <div class="chat-welcome"><div class="chat-welcome-hash">#</div><h3>Welcome to <span class="gradient-text">#general</span></h3><p>This is the beginning of the Skyzone community chat.</p></div>
           <div id="chatMessages" class="chat-messages" aria-live="polite"><p class="chat-empty">Loading messages…</p></div>
