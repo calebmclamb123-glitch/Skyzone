@@ -85,7 +85,8 @@
           <button id="openFriendsPanel" class="chat-channel friends-toggle" type="button">♙ Friends &amp; DMs</button>
           <div class="chat-sidebar-label">TEXT CHANNELS</div>
           <div id="chatChannelList"><button class="chat-channel active" data-channel="general" type="button"><span>#</span> general</button><button class="chat-channel" data-channel="announcements" type="button"><span>#</span> announcements</button><button class="chat-channel" data-channel="media" type="button"><span>#</span> media</button><button class="chat-channel" data-channel="gaming" type="button"><span>#</span> gaming</button><button class="chat-channel" data-channel="off-topic" type="button"><span>#</span> off-topic</button><button class="chat-channel" data-channel="help" type="button"><span>#</span> help</button></div>
-          <div class="chat-sidebar-label voice-label">COMMUNITY</div>
+          <button id="createCategoryButton" class="channel-create-category" type="button">＋ Create category</button>
+          <div class="chat-sidebar-label voice-label">VOICE &amp; COMMUNITY</div>
           <div class="chat-sidebar-note"><i></i> <span id="onlineMemberCount">Online members</span></div>
           <div class="chat-sidebar-footer"><span class="chat-mini-avatar">S</span><span><b id="sidebarMemberName">Skyzone</b><small id="sidebarMemberStatus">Website member</small></span><button id="editProfileShortcut" class="chat-profile-edit" type="button">Edit</button></div>
         </aside>
@@ -146,6 +147,7 @@
   </main>
 
   <footer class="footer"><a class="brand" href="#"><span class="brand-mark">N</span><span>SKYZONE<span class="brand-dot">.</span></span></a><span>© <span id="year"></span> Skyzone Community. All rights reserved.</span><span>Built for the community.</span></footer>
+  <div id="skyzoneDialog" class="skyzone-dialog" hidden><div class="skyzone-dialog-backdrop" data-dialog-close></div><section class="skyzone-dialog-card" role="dialog" aria-modal="true" aria-labelledby="skyzoneDialogTitle"><button class="skyzone-dialog-close" type="button" data-dialog-close aria-label="Close">×</button><div id="skyzoneDialogContent"></div></section></div>
   <script src="/app.js"></script><script src="/member.js"></script>
 </body>
 </html>
