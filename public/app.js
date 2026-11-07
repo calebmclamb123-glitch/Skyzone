@@ -39,14 +39,35 @@ async function checkout(productId, button) {
 }
 $("#menuToggle").addEventListener("click", () => $("#nav").classList.toggle("open"));
 $("#nav").querySelectorAll("a").forEach(a => a.addEventListener("click", () => $("#nav").classList.remove("open")));
-$("#applicationForm").addEventListener("submit", e => {
+$("#applicationForm").addEventListener("submit", async e => {
   e.preventDefault();
-  const data = new FormData(e.currentTarget);
-  // Change this address to the community's application inbox before launch.
-  const destination = "applications@example.com";
-  const subject = encodeURIComponent(`${data.get("type")} — ${data.get("username")}`);
-  const body = encodeURIComponent(`Name / Discord: ${data.get("username")}\nApplication type: ${data.get("type")}\n\n${data.get("message")}`);
-  window.location.href = `mailto:${destination}?subject=${subject}&body=${body}`;
+  const form = e.currentTarget;
+  const button = form.querySelector('button[type="submit"]');
+  const note = $("#formNote");
+  const data = new FormData(form);
+  button.disabled = true;
+  button.textContent = "Sending application…";
+  note.textContent = "Sending your application to the Skyzone team…";
+  try {
+    const response = await fetch("/api/applications", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username: data.get("username"),
+        type: data.get("type"),
+        message: data.get("message")
+      })
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || "Could not send your application.");
+    form.reset();
+    note.textContent = "Application sent! The Skyzone team has received it in Discord.";
+    button.textContent = "Application sent ✓";
+  } catch (error) {
+    note.textContent = error.message;
+    button.textContent = "Try again ↗";
+    button.disabled = false;
+  }
 });
 $("#year").textContent = new Date().getFullYear();
 loadConfig(); loadProducts();
