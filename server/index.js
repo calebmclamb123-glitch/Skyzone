@@ -13,6 +13,8 @@ const PRODUCTS_FILE = path.join(DATA_DIR, "products.json");
 const ORDERS_FILE = path.join(DATA_DIR, "orders.json");
 const ANNOUNCEMENTS_FILE = path.join(DATA_DIR, "announcements.json");
 const CHAT_FILE = path.join(DATA_DIR, "chat.json");
+const MEMBERS_FILE = path.join(DATA_DIR, "members.json");
+const UPLOADS_FILE = path.join(DATA_DIR, "uploads.json");
 fs.mkdirSync(DATA_DIR, { recursive: true });
 
 const starterProducts = [
@@ -31,14 +33,19 @@ if (!fs.existsSync(PRODUCTS_FILE)) writeJson(PRODUCTS_FILE, starterProducts);
 if (!fs.existsSync(ORDERS_FILE)) writeJson(ORDERS_FILE, []);
 if (!fs.existsSync(ANNOUNCEMENTS_FILE)) writeJson(ANNOUNCEMENTS_FILE, starterAnnouncements);
 if (!fs.existsSync(CHAT_FILE)) writeJson(CHAT_FILE, []);
+if (!fs.existsSync(MEMBERS_FILE)) writeJson(MEMBERS_FILE, []);
+if (!fs.existsSync(UPLOADS_FILE)) writeJson(UPLOADS_FILE, []);
 
 const allowedEmails = (process.env.ADMIN_EMAILS || "calebmclamb123@gmail.com,calebmclamb19@gmail.com")
   .split(",").map(x => x.trim().toLowerCase()).filter(Boolean);
 const cookieName = "skyzone_admin";
+const memberCookieName = "skyzone_member";
 const sessionLifetime = 8 * 60 * 60 * 1000;
+const memberSessionLifetime = 30 * 24 * 60 * 60 * 1000;
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const loginAttempts = new Map();
 const chatAttempts = new Map();
+const memberAttempts = new Map();
 
 function secretReady() {
   return Boolean(process.env.SESSION_SECRET && process.env.SESSION_SECRET.length >= 32);
@@ -74,6 +81,51 @@ function requireAdmin(req, res, next) {
   req.adminEmail = session.email;
   next();
 }
+
+function safeMemberName(value) {
+  return String(value || "").trim().replace(/\s+/g, " ").slice(0, 24);
+}
+function hashPassword(password, salt = crypto.randomBytes(16).toString("hex")) {
+  const hash = crypto.scryptSync(password, salt, 64).toString("hex");
+  return { salt, hash };
+}
+function verifyPassword(password, member) {
+  const candidate = crypto.scryptSync(password, member.salt, 64);
+  const expected = Buffer.from(member.passwordHash, "hex");
+  return candidate.length === expected.length && crypto.timingSafeEqual(candidate, expected);
+}
+function createMemberSession(member) {
+  const payload = Buffer.from(JSON.stringify({ id: member.id, exp: Date.now() + memberSessionLifetime })).toString("base64url");
+  return payload + "." + sign(payload);
+}
+function verifyMemberSession(req) {
+  if (!secretReady()) return null;
+  const parts = readCookie(req, memberCookieName).split(".");
+  if (parts.length !== 2) return null;
+  const expected = Buffer.from(sign(parts[0]));
+  const actual = Buffer.from(parts[1]);
+  if (expected.length !== actual.length || !crypto.timingSafeEqual(expected, actual)) return null;
+  try {
+    const data = JSON.parse(Buffer.from(parts[0], "base64url").toString("utf8"));
+    if (!data.id || data.exp < Date.now()) return null;
+    const member = readJson(MEMBERS_FILE, []).find(m => m.id === data.id);
+    return member ? { id: member.id, username: member.username, avatar: member.avatar || "" } : null;
+  } catch { return null; }
+}
+function requireMember(req, res, next) {
+  const member = verifyMemberSession(req);
+  if (!member) return res.status(401).json({ error: "Create an account or sign in to use Skyzone chat." });
+  req.member = member;
+  next();
+}
+function cleanImageData(value, maxBytes = 500 * 1024) {
+  const data = String(value || "");
+  const match = data.match(/^data:(image\/(?:png|jpeg|webp|gif));base64,([A-Za-z0-9+/=]+)$/);
+  if (!match) return null;
+  const bytes = Buffer.from(match[2], "base64");
+  if (!bytes.length || bytes.length > maxBytes) return null;
+  return data;
+}
 function rateLimit(map, key, max, windowMs) {
   const now = Date.now();
   const recent = (map.get(key) || []).filter(t => now - t < windowMs);
@@ -81,7 +133,7 @@ function rateLimit(map, key, max, windowMs) {
   recent.push(now); map.set(key, recent); return true;
 }
 
-app.use(express.json({ limit: "100kb" }));
+app.use(express.json({ limit: "5mb" }));
 app.use(express.static(path.join(__dirname, "..", "public")));
 
 app.get("/api/config", (req, res) => {
@@ -90,6 +142,56 @@ app.get("/api/config", (req, res) => {
     googleClientId: process.env.GOOGLE_CLIENT_ID || ""
   });
 });
+
+app.post("/api/members/register", (req, res) => {
+  if (!secretReady()) return res.status(503).json({ error: "Member accounts are temporarily unavailable. The site owner needs to finish session setup." });
+  const ip = req.ip || "unknown";
+  if (!rateLimit(memberAttempts, ip, 8, 15 * 60 * 1000)) return res.status(429).json({ error: "Too many attempts. Please wait 15 minutes." });
+  const username = safeMemberName(req.body.username);
+  const email = String(req.body.email || "").trim().toLowerCase().slice(0, 254);
+  const password = String(req.body.password || "");
+  if (username.length < 3) return res.status(400).json({ error: "Choose a username with at least 3 characters." });
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ error: "Enter a valid email address." });
+  if (password.length < 10 || password.length > 128) return res.status(400).json({ error: "Use a password between 10 and 128 characters." });
+  const members = readJson(MEMBERS_FILE, []);
+  if (members.some(m => m.email === email)) return res.status(409).json({ error: "An account with that email already exists. Try signing in." });
+  if (members.some(m => m.username.toLowerCase() === username.toLowerCase())) return res.status(409).json({ error: "That username is already taken." });
+  const credentials = hashPassword(password);
+  const member = { id: crypto.randomUUID(), username, email, salt: credentials.salt, passwordHash: credentials.hash, avatar: "", createdAt: new Date().toISOString() };
+  members.push(member); writeJson(MEMBERS_FILE, members);
+  res.cookie(memberCookieName, createMemberSession(member), { httpOnly: true, secure: req.secure, sameSite: "lax", maxAge: memberSessionLifetime, path: "/" });
+  res.status(201).json({ id: member.id, username: member.username, avatar: member.avatar });
+});
+app.post("/api/members/login", (req, res) => {
+  if (!secretReady()) return res.status(503).json({ error: "Member accounts are temporarily unavailable. The site owner needs to finish session setup." });
+  const ip = req.ip || "unknown";
+  if (!rateLimit(memberAttempts, ip, 10, 15 * 60 * 1000)) return res.status(429).json({ error: "Too many attempts. Please wait 15 minutes." });
+  const email = String(req.body.email || "").trim().toLowerCase();
+  const password = String(req.body.password || "");
+  const member = readJson(MEMBERS_FILE, []).find(m => m.email === email);
+  if (!member || !verifyPassword(password, member)) return res.status(401).json({ error: "Email or password is incorrect." });
+  res.cookie(memberCookieName, createMemberSession(member), { httpOnly: true, secure: req.secure, sameSite: "lax", maxAge: memberSessionLifetime, path: "/" });
+  res.json({ id: member.id, username: member.username, avatar: member.avatar || "" });
+});
+app.get("/api/members/me", (req, res) => {
+  const member = verifyMemberSession(req);
+  if (!member) return res.status(401).json({ error: "Not signed in." });
+  res.json(member);
+});
+app.post("/api/members/logout", (req, res) => {
+  res.clearCookie(memberCookieName, { httpOnly: true, secure: req.secure, sameSite: "lax", path: "/" });
+  res.json({ ok: true });
+});
+app.put("/api/members/avatar", requireMember, (req, res) => {
+  const avatar = cleanImageData(req.body.avatar, 400 * 1024);
+  if (!avatar) return res.status(400).json({ error: "Upload a PNG, JPG, WEBP, or GIF smaller than 400 KB." });
+  const members = readJson(MEMBERS_FILE, []);
+  const index = members.findIndex(m => m.id === req.member.id);
+  if (index < 0) return res.status(404).json({ error: "Account not found." });
+  members[index].avatar = avatar; writeJson(MEMBERS_FILE, members);
+  res.json({ avatar });
+});
+
 app.get("/api/products", (req, res) => res.json(readJson(PRODUCTS_FILE, starterProducts).filter(p => p.active)));
 app.get("/api/announcements", (req, res) => res.json(readJson(ANNOUNCEMENTS_FILE, starterAnnouncements).filter(a => a.active)));
 
@@ -152,22 +254,38 @@ app.delete("/api/admin/chat/:id", requireAdmin, (req, res) => {
   res.json({ deleted: true });
 });
 
-// Public website chat. Messages are text-only and limited to reduce spam.
-app.get("/api/chat", (req, res) => {
-  const messages = readJson(CHAT_FILE, []).slice(-100);
-  res.json(messages);
-});
-app.post("/api/chat", (req, res) => {
+// Member-only chat. Images/GIFs are small data URLs until persistent media storage is connected.
+app.get("/api/chat", (req, res) => res.json(readJson(CHAT_FILE, []).slice(-100)));
+app.post("/api/chat", requireMember, (req, res) => {
   const ip = req.ip || "unknown";
   if (!rateLimit(chatAttempts, ip, 5, 30 * 1000)) return res.status(429).json({ error: "Please wait a moment before sending another message." });
-  const name = String(req.body.name || "").trim().replace(/\s+/g, " ").slice(0, 24);
   const body = String(req.body.body || "").trim().slice(0, 500);
-  if (!name || !body) return res.status(400).json({ error: "Enter a display name and message." });
-  const messages = readJson(CHAT_FILE, []);
-  const message = { id: crypto.randomUUID(), name, body, createdAt: new Date().toISOString() };
-  messages.push(message);
-  writeJson(CHAT_FILE, messages.slice(-500));
+  const attachment = cleanImageData(req.body.attachment, 700 * 1024);
+  if (!body && !attachment) return res.status(400).json({ error: "Write a message or attach an image/GIF." });
+  if (req.body.attachment && !attachment) return res.status(400).json({ error: "Images and GIFs must be PNG, JPG, WEBP, or GIF and smaller than 700 KB." });
+  const message = { id: crypto.randomUUID(), memberId: req.member.id, name: req.member.username, avatar: req.member.avatar || "", body, attachment: attachment || "", createdAt: new Date().toISOString() };
+  const messages = readJson(CHAT_FILE, []); messages.push(message); writeJson(CHAT_FILE, messages.slice(-300));
   res.status(201).json(message);
+});
+app.get("/api/admin/uploads", requireAdmin, (req, res) => res.json(readJson(UPLOADS_FILE, [])));
+app.post("/api/admin/uploads", requireAdmin, (req, res) => {
+  const name = String(req.body.name || "").trim().slice(0, 100);
+  const data = String(req.body.data || "");
+  const match = data.match(/^data:([\w.+-]+\/[\w.+-]+);base64,([A-Za-z0-9+/=]+)$/);
+  if (!name || !match) return res.status(400).json({ error: "Choose a file and give it a name." });
+  const type = match[1].toLowerCase();
+  const allowed = ["image/png","image/jpeg","image/webp","image/gif","application/pdf","text/plain"];
+  const bytes = Buffer.from(match[2], "base64");
+  if (!allowed.includes(type) || !bytes.length || bytes.length > 2 * 1024 * 1024) return res.status(400).json({ error: "Allowed: PNG, JPG, WEBP, GIF, PDF, or TXT up to 2 MB." });
+  const uploads = readJson(UPLOADS_FILE, []);
+  if (uploads.length >= 50) return res.status(400).json({ error: "The upload library is full (50 files maximum)." });
+  const item = { id: crypto.randomUUID(), name, type, data, size: bytes.length, createdAt: new Date().toISOString() };
+  uploads.unshift(item); writeJson(UPLOADS_FILE, uploads);
+  res.status(201).json({ id: item.id, name: item.name, type: item.type, size: item.size, createdAt: item.createdAt });
+});
+app.delete("/api/admin/uploads/:id", requireAdmin, (req, res) => {
+  writeJson(UPLOADS_FILE, readJson(UPLOADS_FILE, []).filter(item => item.id !== req.params.id));
+  res.json({ deleted: true });
 });
 
 // Checkout intentionally stays disabled until a secure hosted payment provider is connected.
