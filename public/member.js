@@ -56,7 +56,8 @@ document.querySelectorAll("[data-channel]").forEach(b=>b.classList.toggle("activ
  chatStatus.textContent=channel==="announcements"?"Announcements are read-only for members.": "Messages are public. Never share passwords, addresses, or private information.";
  await refreshMemberChat();
 }
-async function loadMember(){try{const member=await memberApi("/api/members/me");setMember(member);await refreshMemberChat()}catch{setMember(null)}}
+async function updatePresence(){if(!currentMember)return;try{await memberApi("/api/members/presence",{method:"POST"});const data=await memberApi("/api/members/online");member$("#onlineMemberCount").textContent=data.count+" online";}catch{}}
+async function loadMember(){try{const member=await memberApi("/api/members/me");setMember(member);await refreshMemberChat();await updatePresence()}catch{setMember(null)}}
 function readImage(file,maxBytes){return new Promise((resolve,reject)=>{if(!file)return resolve("");if(!/^image\/(png|jpeg|webp|gif)$/.test(file.type))return reject(new Error("Choose a PNG, JPG, WEBP, or GIF image."));if(file.size>maxBytes)return reject(new Error("That image is too large. Please choose a smaller file."));const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.onerror=()=>reject(new Error("Could not read that image."));reader.readAsDataURL(file)})}
 member$("#showLogin").onclick=()=>{loginForm.hidden=false;registerForm.hidden=true;member$("#showLogin").classList.add("active");member$("#showRegister").classList.remove("active");authStatus.textContent=""};
 member$("#showRegister").onclick=()=>{loginForm.hidden=true;registerForm.hidden=false;member$("#showRegister").classList.add("active");member$("#showLogin").classList.remove("active");authStatus.textContent=""};
@@ -79,4 +80,4 @@ messagesBox.addEventListener("click",async e=>{
   if(del&&confirm("Delete this message?")){await memberApi("/api/chat/"+del.dataset.id,{method:"DELETE"});await refreshMemberChat()}
  }catch(err){chatStatus.textContent=err.message}
 });
-loadMember();setInterval(refreshMemberChat,7000);
+loadMember();setInterval(refreshMemberChat,7000);setInterval(updatePresence,30000);
