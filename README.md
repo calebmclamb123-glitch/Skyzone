@@ -1,40 +1,34 @@
-# Skyzone Community Website — Starter
+# Skyzone Community Website
 
-Responsive community website starter with homepage, digital store, staff, rules, applications, Discord invite links, and server-side product management endpoints.
+Responsive Skyzone community website with Discord links, announcements, store, staff, rules, applications, and an owner admin dashboard.
 
 ## Run locally
 
 1. Install Node.js 18 or newer.
-2. Open a terminal in this folder and run `npm install`.
+2. Run `npm install`.
 3. Copy `.env.example` to `.env`.
-4. Set your Discord invite and a long unique `ADMIN_PASSWORD`.
-5. Run `npm start` and visit `http://localhost:3000`.
+4. Set `ADMIN_PASSWORD` to a private password of at least 12 characters.
+5. Set `SESSION_SECRET` to a random secret of at least 32 characters.
+6. Run `npm start` and visit `http://localhost:3000`.
+
+## Owner dashboard
+
+Open `/admin.html` on the website. Only the two owner email addresses configured in `ADMIN_EMAILS` are allowed to sign in. Both owners use the private `ADMIN_PASSWORD` configured in the hosting environment. The password is not stored in the repository. Login sessions are signed, HttpOnly cookies and expire after 8 hours; repeated failed logins are rate limited.
+
+The dashboard can publish/remove announcements and add/remove store products. Keep the admin password and session secret private. Set both in Render's Environment settings; never paste them into GitHub or public chat.
 
 ## Store and payments
 
-Sample products are stored in `server/data/products.json`. Update the sample products with your own accurate names, descriptions, prices, and delivery terms.
-
-Secure card checkout is **not connected yet** because you said you do not want Stripe and have not selected another payment provider. The site must use a reputable payment processor's hosted checkout or secure embedded payment fields. Do not build a form that sends raw card numbers, CVCs, or expiry dates to your own server. Never store those details yourself.
-
-Once you choose a provider, its merchant account must be eligible and connected, and its payout settings must be configured so funds go to the correct account. If you are under 18, a parent or guardian will need to handle the eligible account setup where the provider requires it.
+Sample products are stored in `server/data/products.json`. Secure card checkout is not connected yet. Before accepting payments, connect a reputable provider's hosted checkout and configure its eligible merchant/payout account. Never collect or store raw card numbers, CVCs, or expiry dates on this site.
 
 ## Discord
 
-Set `DISCORD_INVITE_URL` in `.env`. The Join Discord buttons will use that invite.
+The official Skyzone invite is configured as `https://discord.gg/QVR7E9jgUN`.
+
+## Announcements
+
+The public page shows community announcements. Owners can manage them in `/admin.html`. Data currently uses local JSON files under `server/data`; Render's free filesystem can be ephemeral, so use a persistent database/storage before relying on it for important posts or store data.
 
 ## Applications
 
-The form prepares an email using `mailto:` and currently uses the placeholder `applications@example.com`. Change the destination in `public/app.js` to the correct application inbox before launch.
-
-## Admin API
-
-The starter exposes password-gated endpoints:
-- `GET /api/admin/products`
-- `PUT /api/admin/products` with JSON `{ "products": [...] }`
-- `GET /api/admin/orders`
-
-Pass the configured password in the `x-admin-password` header. This is a developer starter API, not a finished visual admin dashboard or production-grade account system. Before public launch, add proper owner accounts, roles, rate limiting, CSRF protection, audit logs, backups, and a security review.
-
-## Publishing
-
-This folder is not a live website yet. Deploy it to a Node.js hosting provider and connect a domain to receive a public link. Set `SITE_URL` and all environment variables in the hosting dashboard. Add privacy, terms, refund, and contact pages before accepting orders.
+The application form currently prepares an email using a placeholder destination in `public/app.js`. Change it to the correct application inbox before launch.
