@@ -167,3 +167,17 @@
 .account-section .member-profile{padding:14px 16px}
 .chat-signin-notice{padding:11px 12px;margin:12px 0;border:1px solid #454750;border-radius:8px;background:#2b2d31;color:#c8cbd0;font-size:11px;line-height:1.5}
 @media(max-width:650px){.account-section{padding-top:22px}.account-section .member-auth-form{display:grid;grid-template-columns:1fr}.account-section .member-auth-form input{width:100%}}
+
+
+/* Interactive community channels and message controls */
+#chatChannelList{display:grid;gap:3px}
+.chat-reaction-add,.chat-reaction,.chat-message-edit,.chat-message-delete{border:1px solid #4b4e57;border-radius:6px;background:#383a40;color:#c9ccd1;padding:4px 7px;font:10px var(--font);cursor:pointer}
+.chat-message-actions,.chat-reactions{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.chat-message-actions{opacity:.72}
+.chat-message-actions button:hover,.chat-reaction:hover{background:#4b4e65}
+.chat-reaction.selected{background:#414b82;border-color:#7787f5;color:#fff}
+.chat-reply-label{display:block;color:#a9a1c9;font-size:9px;margin-top:5px}
+.chat-main .chat-message-content p{overflow-wrap:anywhere}
+.chat-channel.active{background:#404249;color:#fff}
+.chat-channel:not(:disabled){cursor:pointer}
+.chat-channel:not(:disabled):hover{background:#383a40;color:#f2f3f5}
