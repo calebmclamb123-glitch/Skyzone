@@ -421,7 +421,10 @@ app.post("/api/dms", requireMember, (req,res)=>{
 const COMMUNITY_CHANNELS = [
   { id: "general", name: "general", topic: "Everyday community conversation", category: "TEXT CHANNELS" },
   { id: "announcements", name: "announcements", topic: "Community updates and news", category: "TEXT CHANNELS" },
-  { id: "media", name: "media", topic: "Share images and GIFs", category: "TEXT CHANNELS" }
+  { id: "media", name: "media", topic: "Share images and GIFs", category: "TEXT CHANNELS" },
+  { id: "gaming", name: "gaming", topic: "Talk games, servers, and what you are playing", category: "TEXT CHANNELS" },
+  { id: "off-topic", name: "off-topic", topic: "Casual conversations beyond the main topic", category: "TEXT CHANNELS" },
+  { id: "help", name: "help", topic: "Ask questions and help other members", category: "TEXT CHANNELS" }
 ];
 app.get("/api/channels", requireMember, (req, res) => res.json(COMMUNITY_CHANNELS));
 app.post("/api/admin/chat", requireAdmin, (req,res)=>{ const body=String(req.body.body||"").trim().slice(0,2000); if(!body)return res.status(400).json({error:"Write an announcement first."}); const message={id:crypto.randomUUID(),channelId:"announcements",memberId:"owner",name:"Owner",avatar:"",body,attachment:"",reactions:{},replyTo:"",editedAt:"",createdAt:new Date().toISOString()}; const messages=readJson(CHAT_FILE,[]); messages.push(message); writeJson(CHAT_FILE,messages.slice(-500)); res.status(201).json(message); });
