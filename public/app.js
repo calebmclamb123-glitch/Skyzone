@@ -50,3 +50,41 @@ $("#applicationForm").addEventListener("submit", e => {
 });
 $("#year").textContent = new Date().getFullYear();
 loadConfig(); loadProducts();
+
+
+const chatMessagesEl = $("#chatMessages");
+const chatStatusEl = $("#chatStatus");
+const chatEscape = escapeHtml;
+function renderChatMessages(messages) {
+  if (!chatMessagesEl) return;
+  if (!messages.length) { chatMessagesEl.innerHTML = '<p class="chat-empty">No messages yet. Start the conversation!</p>'; return; }
+  chatMessagesEl.innerHTML = messages.map(m => {
+    const time = new Date(m.createdAt).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"});
+    return '<article class="chat-message"><div class="chat-message-top"><strong>'+chatEscape(m.name)+'</strong><time>'+time+'</time></div><p>'+chatEscape(m.body)+'</p></article>';
+  }).join("");
+  chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+}
+async function refreshChat() {
+  try { const messages = await fetch("/api/chat").then(r => {if(!r.ok) throw new Error("Chat unavailable");return r.json()}); renderChatMessages(messages); }
+  catch { if(chatMessagesEl) chatMessagesEl.innerHTML = '<p class="chat-empty">Chat is temporarily unavailable.</p>'; }
+}
+const chatForm = $("#chatForm");
+if (chatForm) {
+  chatForm.addEventListener("submit", async e => {
+    e.preventDefault();
+    const button = chatForm.querySelector("button");
+    const data = new FormData(chatForm);
+    button.disabled = true;
+    try {
+      const response = await fetch("/api/chat", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:data.get("name"),body:data.get("body")})});
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Could not send message.");
+      chatForm.elements.body.value = "";
+      chatStatusEl.textContent = "Message sent.";
+      await refreshChat();
+    } catch(err) { chatStatusEl.textContent = err.message; }
+    finally { button.disabled = false; }
+  });
+  refreshChat();
+  setInterval(refreshChat, 7000);
+}
