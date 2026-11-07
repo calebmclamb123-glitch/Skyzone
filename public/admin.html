@@ -3,7 +3,12 @@
 <body class="admin-body"><main class="admin-shell">
 <a class="brand admin-brand" href="/"><span class="brand-mark">S</span><span>SKYZONE<span class="brand-dot">.</span> ADMIN</span></a>
 <section class="admin-card" id="loginPanel"><div class="eyebrow">OWNER ACCESS</div><h1>Sign in to <span class="gradient-text">Skyzone.</span></h1><p class="admin-muted">Continue with Google. Only approved owner accounts can access admin tools. This is not the same as a regular Skyzone member login.</p>
-<div id="googleButton" class="google-button-wrap"><p class="admin-muted">Loading secure Google sign-in…</p></div><p class="admin-message" id="loginMessage" role="status"></p>
+<div id="googleButton" class="google-button-wrap"><p class="admin-muted">Loading secure Google sign-in…</p></div>
+<form id="ownerPasswordForm" class="admin-form" style="margin-top:22px">
+<label>Owner password<input name="password" type="password" autocomplete="current-password" required placeholder="Enter your Render ADMIN_PASSWORD"></label>
+<button class="btn btn-primary" type="submit">Sign in as owner</button>
+</form>
+<p class="admin-message" id="loginMessage" role="status"></p>
 </section>
 <section id="dashboard" hidden>
 <div class="admin-heading"><div><div class="eyebrow">CONTROL CENTER</div><h1>Welcome, <span class="gradient-text">Owner.</span></h1><p class="admin-muted" id="signedInAs"></p></div><button class="btn btn-quiet" id="logoutBtn">Log out</button></div>
