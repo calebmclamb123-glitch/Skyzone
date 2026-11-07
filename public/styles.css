@@ -422,3 +422,11 @@ body{
 .brand-mark{width:38px!important;height:38px!important}
 .chat-server-icon,.chat-mini-avatar{width:30px!important;height:30px!important}
 .footer .brand-mark{width:30px!important;height:30px!important}
+
+
+/* Owner-only announcement composer in the website chat. */
+.owner-announcement-form{grid-template-columns:minmax(0,1fr) auto!important;gap:8px;align-items:center}
+.owner-announcement-form .chat-input-wrap{min-width:0}
+.owner-announcement-form input{width:100%;min-width:0}
+.owner-announcement-form button{white-space:nowrap;padding:0 14px}
+@media(max-width:520px){.owner-announcement-form{grid-template-columns:1fr!important}.owner-announcement-form button{min-height:38px}}
