@@ -262,18 +262,66 @@ app.delete("/api/admin/chat/:id", requireAdmin, (req, res) => {
   res.json({ deleted: true });
 });
 
-// Member-only chat. Images/GIFs are small data URLs until persistent media storage is connected.
-app.get("/api/chat", (req, res) => res.json(readJson(CHAT_FILE, []).slice(-100)));
+// Member community channels and message interactions.
+const COMMUNITY_CHANNELS = [
+  { id: "general", name: "general", topic: "Everyday community conversation", category: "TEXT CHANNELS" },
+  { id: "announcements", name: "announcements", topic: "Community updates and news", category: "TEXT CHANNELS" },
+  { id: "media", name: "media", topic: "Share images and GIFs", category: "TEXT CHANNELS" }
+];
+app.get("/api/channels", requireMember, (req, res) => res.json(COMMUNITY_CHANNELS));
+app.get("/api/chat", requireMember, (req, res) => {
+  const channelId = String(req.query.channel || "general");
+  if (!COMMUNITY_CHANNELS.some(c => c.id === channelId)) return res.status(404).json({ error: "Channel not found." });
+  const messages = readJson(CHAT_FILE, []).map(m => ({ ...m, channelId: m.channelId || "general" }))
+    .filter(m => m.channelId === channelId).slice(-100);
+  res.json(messages);
+});
 app.post("/api/chat", requireMember, (req, res) => {
   const ip = req.ip || "unknown";
   if (!rateLimit(chatAttempts, ip, 5, 30 * 1000)) return res.status(429).json({ error: "Please wait a moment before sending another message." });
   const body = String(req.body.body || "").trim().slice(0, 500);
+  const channelId = String(req.body.channelId || "general");
+  if (!COMMUNITY_CHANNELS.some(c => c.id === channelId)) return res.status(400).json({ error: "Choose a valid channel." });
   const attachment = cleanImageData(req.body.attachment, 700 * 1024);
   if (!body && !attachment) return res.status(400).json({ error: "Write a message or attach an image/GIF." });
   if (req.body.attachment && !attachment) return res.status(400).json({ error: "Images and GIFs must be PNG, JPG, WEBP, or GIF and smaller than 700 KB." });
-  const message = { id: crypto.randomUUID(), memberId: req.member.id, name: req.member.username, avatar: req.member.avatar || "", body, attachment: attachment || "", createdAt: new Date().toISOString() };
-  const messages = readJson(CHAT_FILE, []); messages.push(message); writeJson(CHAT_FILE, messages.slice(-300));
+  if (channelId === "announcements") return res.status(403).json({ error: "Only community staff can post announcements. Use #general or #media." });
+  const message = { id: crypto.randomUUID(), channelId, memberId: req.member.id, name: req.member.username, avatar: req.member.avatar || "", body, attachment: attachment || "", reactions: {}, replyTo: String(req.body.replyTo || "").slice(0, 80), editedAt: "", createdAt: new Date().toISOString() };
+  const messages = readJson(CHAT_FILE, []); messages.push(message); writeJson(CHAT_FILE, messages.slice(-500));
   res.status(201).json(message);
+});
+app.patch("/api/chat/:id", requireMember, (req, res) => {
+  const messages = readJson(CHAT_FILE, []);
+  const item = messages.find(m => m.id === req.params.id);
+  if (!item) return res.status(404).json({ error: "Message not found." });
+  if (item.memberId !== req.member.id) return res.status(403).json({ error: "You can only edit your own messages." });
+  const body = String(req.body.body || "").trim().slice(0, 500);
+  if (!body) return res.status(400).json({ error: "Message cannot be empty." });
+  item.body = body; item.editedAt = new Date().toISOString();
+  writeJson(CHAT_FILE, messages);
+  res.json({ updated: true, message: item });
+});
+app.delete("/api/chat/:id", requireMember, (req, res) => {
+  const messages = readJson(CHAT_FILE, []);
+  const item = messages.find(m => m.id === req.params.id);
+  if (!item) return res.status(404).json({ error: "Message not found." });
+  if (item.memberId !== req.member.id) return res.status(403).json({ error: "You can only delete your own messages." });
+  writeJson(CHAT_FILE, messages.filter(m => m.id !== req.params.id));
+  res.json({ deleted: true });
+});
+app.post("/api/chat/:id/reactions", requireMember, (req, res) => {
+  const emoji = String(req.body.emoji || "");
+  if (!["👍","❤️","😂","🎉","👀"].includes(emoji)) return res.status(400).json({ error: "Choose an available reaction." });
+  const messages = readJson(CHAT_FILE, []);
+  const item = messages.find(m => m.id === req.params.id);
+  if (!item) return res.status(404).json({ error: "Message not found." });
+  item.reactions = item.reactions || {};
+  item.reactions[emoji] = Array.isArray(item.reactions[emoji]) ? item.reactions[emoji] : [];
+  const ids = item.reactions[emoji];
+  item.reactions[emoji] = ids.includes(req.member.id) ? ids.filter(id => id !== req.member.id) : [...ids, req.member.id];
+  if (!item.reactions[emoji].length) delete item.reactions[emoji];
+  writeJson(CHAT_FILE, messages);
+  res.json({ reactions: item.reactions });
 });
 app.get("/api/admin/uploads", requireAdmin, (req, res) => res.json(readJson(UPLOADS_FILE, [])));
 app.post("/api/admin/uploads", requireAdmin, (req, res) => {
