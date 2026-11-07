@@ -213,3 +213,39 @@
 
 /* Keep the owner portal link easy to find in the main navigation. */
 .topbar nav a[href='/admin.html']{color:#c6b4ff;font-weight:700}.topbar nav a[href='/admin.html']:hover{color:#fff}
+
+
+/* Shared Skyzone artwork: logo, site backdrop, hero, chat and member profile */
+body{
+  background-image:linear-gradient(rgba(7,7,18,.88),rgba(7,7,18,.94)),url("https://th.bing.com/th/id/OIP.P_BnVnb52eJ5qRKxORzUbAHaEU?w=275&h=180&c=7&r=0&o=7&pid=1.7&rm=3");
+  background-size:cover;
+  background-position:center;
+  background-attachment:fixed;
+}
+.brand-mark{
+  background-image:url("https://th.bing.com/th/id/OIP.P_BnVnb52eJ5qRKxORzUbAHaEU?w=275&h=180&c=7&r=0&o=7&pid=1.7&rm=3");
+  background-size:cover;
+  background-position:center;
+  color:transparent;
+  font-size:0;
+  border:1px solid rgba(190,170,255,.45);
+}
+.member-profile-banner{
+  background-image:linear-gradient(90deg,rgba(10,9,25,.78),rgba(10,9,25,.35)),url("https://th.bing.com/th/id/OIP.P_BnVnb52eJ5qRKxORzUbAHaEU?w=275&h=180&c=7&r=0&o=7&pid=1.7&rm=3");
+  background-size:cover;
+  background-position:center;
+}
+.chat-server-icon,.chat-mini-avatar{
+  background-image:url("https://th.bing.com/th/id/OIP.P_BnVnb52eJ5qRKxORzUbAHaEU?w=275&h=180&c=7&r=0&o=7&pid=1.7&rm=3");
+  background-size:cover;
+  background-position:center;
+  color:transparent;
+  font-size:0;
+  border:1px solid rgba(190,170,255,.4);
+}
+.chat-avatar:not(:has(img)){
+  background-image:linear-gradient(rgba(12,10,28,.35),rgba(12,10,28,.35)),url("https://th.bing.com/th/id/OIP.P_BnVnb52eJ5qRKxORzUbAHaEU?w=275&h=180&c=7&r=0&o=7&pid=1.7&rm=3");
+  background-size:cover;
+  background-position:center;
+  color:transparent;
+}
