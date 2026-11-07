@@ -181,3 +181,5 @@
 .chat-channel.active{background:#404249;color:#fff}
 .chat-channel:not(:disabled){cursor:pointer}
 .chat-channel:not(:disabled):hover{background:#383a40;color:#f2f3f5}
+
+.chat-reply-status{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 10px;margin-top:9px;border-left:3px solid #8c78e8;background:#272936;color:#c9c4e2;font-size:10px}.chat-reply-status button{border:0;background:transparent;color:#b7b2c8;cursor:pointer;font-size:10px}.chat-message-reply{border:1px solid #4b4e57;border-radius:6px;background:#383a40;color:#c9ccd1;padding:4px 7px;font:10px var(--font);cursor:pointer}
