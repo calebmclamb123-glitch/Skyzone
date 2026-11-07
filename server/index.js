@@ -70,8 +70,8 @@ function readCookie(req, name) {
   const item = raw.split(";").map(x => x.trim()).find(x => x.startsWith(name + "="));
   return item ? decodeURIComponent(item.slice(name.length + 1)) : "";
 }
-function createSession(email) {
-  const payload = Buffer.from(JSON.stringify({ email, exp: Date.now() + sessionLifetime })).toString("base64url");
+function createSession(email, auth = "google") {
+  const payload = Buffer.from(JSON.stringify({ email, auth, exp: Date.now() + sessionLifetime })).toString("base64url");
   return payload + "." + sign(payload);
 }
 function verifySession(req) {
@@ -83,7 +83,9 @@ function verifySession(req) {
   if (expected.length !== actual.length || !crypto.timingSafeEqual(expected, actual)) return null;
   try {
     const data = JSON.parse(Buffer.from(parts[0], "base64url").toString("utf8"));
-    if (!data.email || !allowedEmails.includes(data.email) || data.exp < Date.now()) return null;
+    const isApprovedGoogleOwner = data.auth === "google" && allowedEmails.includes(String(data.email || "").toLowerCase());
+    const isPasswordOwner = data.auth === "password" && data.email === "owner";
+    if ((!isApprovedGoogleOwner && !isPasswordOwner) || data.exp < Date.now()) return null;
     return data;
   } catch { return null; }
 }
@@ -246,6 +248,22 @@ app.get("/api/members/online", requireMember, (req,res)=>{
 });
 app.get("/api/products", (req, res) => res.json(readJson(PRODUCTS_FILE, starterProducts).filter(p => p.active)));
 app.get("/api/announcements", (req, res) => res.json(readJson(ANNOUNCEMENTS_FILE, starterAnnouncements).filter(a => a.active)));
+
+app.post("/api/admin/password", (req, res) => {
+  if (!secretReady()) return res.status(503).json({ error: "Owner sign-in is unavailable because SESSION_SECRET is missing or too short. Set it in Render." });
+  const configuredPassword = String(process.env.ADMIN_PASSWORD || "");
+  if (!configuredPassword) return res.status(503).json({ error: "Set ADMIN_PASSWORD in Render Environment first." });
+  const ip = req.ip || "unknown";
+  if (!rateLimit(loginAttempts, ip, 8, 15 * 60 * 1000)) return res.status(429).json({ error: "Too many sign-in attempts. Please wait 15 minutes." });
+  const supplied = Buffer.from(String(req.body.password || ""));
+  const expected = Buffer.from(configuredPassword);
+  const matches = supplied.length === expected.length && crypto.timingSafeEqual(supplied, expected);
+  if (!matches) return res.status(401).json({ error: "Owner password is incorrect." });
+  res.cookie(cookieName, createSession("owner", "password"), {
+    httpOnly: true, secure: req.secure, sameSite: "lax", maxAge: sessionLifetime, path: "/"
+  });
+  res.json({ ok: true, email: "Owner password login" });
+});
 
 app.post("/api/admin/google", async (req, res) => {
   if (!secretReady()) return res.status(503).json({ error: "Admin sign-in is not configured. Add SESSION_SECRET in Render Environment." });
