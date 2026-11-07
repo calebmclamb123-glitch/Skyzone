@@ -728,7 +728,7 @@ function cleanServerName(value) { return String(value || "").trim().replace(/\\s
 function getServerMembership(server, memberId) { return (server.members || []).find(x => x.memberId === memberId); }
 function publicServer(server, memberId) {
   const membership = getServerMembership(server, memberId);
-  return { id: server.id, name: server.name, description: server.description || "", icon: server.icon || "", ownerId: server.ownerId, inviteCode: membership?.role === "owner" || membership?.role === "admin" ? server.inviteCode : undefined, role: membership?.role || "member", memberCount: (server.members || []).length, channels: (server.channels || []).map(c => ({ id: c.id, name: c.name, topic: c.topic || "", type: c.type || "text" })) };
+  return { id: server.id, name: server.name, description: server.description || "", icon: server.icon || "", ownerId: server.ownerId, inviteCode: membership?.role === "owner" || membership?.role === "admin" ? server.inviteCode : undefined, role: membership?.role || "member", memberCount: (server.members || []).length, channels: (server.channels || []).map(c => ({ id: c.id, name: c.name, topic: c.topic || "", type: c.type || "text", category: c.category || "TEXT CHANNELS" })) };
 }
 function requireServerMember(req, res, next) {
   const server = readJson(SERVERS_FILE, []).find(s => s.id === req.params.serverId);
@@ -788,7 +788,7 @@ app.post("/api/servers/:serverId/channels", requireMember, requireServerMember, 
   if (name.length < 2) return res.status(400).json({ error: "Channel names need at least 2 letters or numbers." });
   if (req.server.channels.some(c => c.name === name)) return res.status(409).json({ error: "That channel already exists." });
   const servers = readJson(SERVERS_FILE, []); const server = servers.find(s => s.id === req.server.id);
-  const channel = { id: crypto.randomUUID(), name, topic: String(req.body.topic || "").slice(0, 120), type: req.body.type === "announcement" ? "announcement" : "text", category: String(req.body.category || "TEXT CHANNELS").trim().toUpperCase().slice(0,32) };
+  const channel = { id: crypto.randomUUID(), name, topic: String(req.body.topic || "").slice(0, 120), type: ["announcement","voice"].includes(req.body.type) ? req.body.type : "text", category: String(req.body.category || "TEXT CHANNELS").trim().toUpperCase().slice(0,32) };
   server.channels.push(channel); writeJson(SERVERS_FILE, servers); res.status(201).json(channel);
 });
 app.post("/api/servers/:serverId/categories", requireMember, requireServerMember, requireServerManager, (req,res)=>{const name=String(req.body.name||"").trim().toUpperCase().replace(/[^A-Z0-9 _-]/g,"").slice(0,32);if(name.length<2)return res.status(400).json({error:"Category names need at least 2 characters."});if(req.server.channels.some(c=>(c.category||"TEXT CHANNELS")===name))return res.status(409).json({error:"That category already exists."});res.status(201).json({name})});
