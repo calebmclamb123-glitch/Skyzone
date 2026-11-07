@@ -475,9 +475,9 @@ app.post("/api/applications", async (req, res) => {
           color: 0x8b5cf6,
           fields: [
             { name: "Applicant", value: username, inline: true },
-            { name: "Application type", value: type, inline: true },
-            { name: "Application details", value: message, inline: false }
+            { name: "Application type", value: type, inline: true }
           ],
+          description: message,
           timestamp: new Date().toISOString(),
           footer: { text: "Submitted through the Skyzone website" }
         }],
