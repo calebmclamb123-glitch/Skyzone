@@ -443,6 +443,59 @@ app.delete("/api/admin/uploads/:id", requireAdmin, (req, res) => {
   res.json({ deleted: true });
 });
 
+// Send website applications to the private Discord applications channel via a server-side webhook.
+const applicationAttempts = new Map();
+app.post("/api/applications", async (req, res) => {
+  const ip = req.ip || "unknown";
+  if (!rateLimit(applicationAttempts, ip, 3, 10 * 60 * 1000)) {
+    return res.status(429).json({ error: "Too many applications sent. Please wait a few minutes." });
+  }
+  const username = String(req.body.username || "").trim().slice(0, 80);
+  const type = String(req.body.type || "").trim().slice(0, 60);
+  const message = String(req.body.message || "").trim().slice(0, 1500);
+  const allowedTypes = ["Staff application", "Partnership application", "Other"];
+  if (username.length < 2 || !allowedTypes.includes(type) || message.length < 10) {
+    return res.status(400).json({ error: "Please enter your name, choose an application type, and write at least 10 characters." });
+  }
+  const webhookUrl = process.env.DISCORD_APPLICATIONS_WEBHOOK_URL;
+  if (!webhookUrl) {
+    return res.status(503).json({ error: "Applications are temporarily unavailable. Please contact the Skyzone team on Discord." });
+  }
+  try {
+    const parsed = new URL(webhookUrl);
+    if (parsed.hostname !== "discord.com" || !parsed.pathname.startsWith("/api/webhooks/")) {
+      return res.status(503).json({ error: "The applications destination is not configured correctly." });
+    }
+    const discordResponse = await fetch(webhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        embeds: [{
+          title: "New Skyzone Website Application",
+          color: 0x8b5cf6,
+          fields: [
+            { name: "Applicant", value: username, inline: true },
+            { name: "Application type", value: type, inline: true },
+            { name: "Application details", value: message.slice(0, 1024), inline: false }
+          ],
+          timestamp: new Date().toISOString(),
+          footer: { text: "Submitted through the Skyzone website" }
+        }],
+        allowed_mentions: { parse: [] }
+      }),
+      signal: AbortSignal.timeout(10000)
+    });
+    if (!discordResponse.ok) {
+      console.error("Discord application webhook returned status", discordResponse.status);
+      return res.status(502).json({ error: "Discord could not receive the application. Please try again later." });
+    }
+    res.status(201).json({ sent: true });
+  } catch (error) {
+    console.error("Application delivery failed:", error.message);
+    res.status(502).json({ error: "Could not reach Discord. Please try again later." });
+  }
+});
+
 // Checkout intentionally stays disabled until a secure hosted payment provider is connected.
 app.post("/api/checkout", (req, res) => {
   res.status(503).json({ error: "Secure card checkout is not connected yet. Choose a payment provider and connect its hosted checkout." });
