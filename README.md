@@ -1,34 +1,37 @@
 # Skyzone Community Website
 
-Responsive Skyzone community website with Discord links, announcements, store, staff, rules, applications, and an owner admin dashboard.
+Node/Express website for the Skyzone community, with Discord links, announcements, public website chat, store listings, staff, rules, applications, and a Google-authenticated owner dashboard.
+
+## Owner sign-in setup
+
+The admin page is `/admin.html`. Owner access is granted only after Google verifies the signed-in account and the email is in `ADMIN_EMAILS` (defaults to the two Skyzone owner Gmail addresses).
+
+1. Create a Google OAuth 2.0 **Web application** client in Google Cloud Console.
+2. Add the exact website origin (for example `https://skyzone-elly.onrender.com`) to **Authorized JavaScript origins**.
+3. Copy the OAuth Client ID.
+4. In Render > Skyzone > Environment, add:
+   - `GOOGLE_CLIENT_ID`: the Google OAuth Web client ID.
+   - `SESSION_SECRET`: a random private string at least 32 characters long.
+   - `ADMIN_EMAILS`: `calebmclamb123@gmail.com,calebmclamb19@gmail.com` (already the server default).
+5. Save and redeploy. Open `/admin.html`, choose the correct Google account, and Google will grant owner access only to the two allowlisted verified addresses.
+
+Do not put OAuth client secrets or session secrets in GitHub or public chat. This implementation uses Google Identity Services ID-token verification; it does not ask for or store Google passwords.
+
+## Website chat
+
+Visitors can post using a display name without sharing an email address. Messages are public, text-only, limited in length, and rate-limited. Owners can remove messages in the admin dashboard. The current implementation stores chat, products, and announcements in local JSON files under `server/data`. Render's free filesystem can be ephemeral; connect a persistent database before relying on chat history or admin content.
 
 ## Run locally
 
 1. Install Node.js 18 or newer.
 2. Run `npm install`.
-3. Copy `.env.example` to `.env`.
-4. Set `ADMIN_PASSWORD` to a private password of at least 12 characters.
-5. Set `SESSION_SECRET` to a random secret of at least 32 characters.
-6. Run `npm start` and visit `http://localhost:3000`.
+3. Copy `.env.example` to `.env` and configure Google Client ID and SESSION_SECRET.
+4. Run `npm start` and visit `http://localhost:3000`.
 
-## Owner dashboard
+## Payments
 
-Open `/admin.html` on the website. Only the two owner email addresses configured in `ADMIN_EMAILS` are allowed to sign in. Both owners use the private `ADMIN_PASSWORD` configured in the hosting environment. The password is not stored in the repository. Login sessions are signed, HttpOnly cookies and expire after 8 hours; repeated failed logins are rate limited.
-
-The dashboard can publish/remove announcements and add/remove store products. Keep the admin password and session secret private. Set both in Render's Environment settings; never paste them into GitHub or public chat.
-
-## Store and payments
-
-Sample products are stored in `server/data/products.json`. Secure card checkout is not connected yet. Before accepting payments, connect a reputable provider's hosted checkout and configure its eligible merchant/payout account. Never collect or store raw card numbers, CVCs, or expiry dates on this site.
+Secure card checkout is not connected yet. Before accepting payments, connect a reputable provider's hosted checkout. Never collect or store raw card numbers, CVCs, or expiry dates on this site.
 
 ## Discord
 
-The official Skyzone invite is configured as `https://discord.gg/QVR7E9jgUN`.
-
-## Announcements
-
-The public page shows community announcements. Owners can manage them in `/admin.html`. Data currently uses local JSON files under `server/data`; Render's free filesystem can be ephemeral, so use a persistent database/storage before relying on it for important posts or store data.
-
-## Applications
-
-The application form currently prepares an email using a placeholder destination in `public/app.js`. Change it to the correct application inbox before launch.
+Official Skyzone invite: `https://discord.gg/QVR7E9jgUN`.
