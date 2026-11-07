@@ -232,6 +232,15 @@ app.put("/api/members/avatar", requireMember, (req, res) => {
   res.json({ avatar });
 });
 
+app.delete("/api/members/avatar", requireMember, (req, res) => {
+  const members = readJson(MEMBERS_FILE, []);
+  const index = members.findIndex(m => m.id === req.member.id);
+  if (index < 0) return res.status(404).json({ error: "Account not found." });
+  members[index].avatar = "";
+  writeJson(MEMBERS_FILE, members);
+  res.json({ avatar: "" });
+});
+
 // Lightweight online presence for the member sidebar.
 app.post("/api/members/presence", requireMember, (req,res)=>{
  const members=readJson(MEMBERS_FILE,[]);
