@@ -52,6 +52,12 @@
         </div>
         <aside class="discord-panel"><div class="discord-symbol">◈</div><div class="eyebrow">OFFICIAL COMMUNITY</div><h3>Chat with us on Discord.</h3><p>Meet other members, talk with the team, and catch announcements as they happen.</p><a class="btn btn-primary" href="https://discord.gg/QVR7E9jgUN" target="_blank" rel="noopener">Join Skyzone ↗</a><small>Opens the official Skyzone Discord invite.</small></aside>
       </div>
+      <div class="website-chat">
+        <div class="chat-heading"><div><div class="eyebrow">COMMUNITY CHAT</div><h3>Talk with the <span class="gradient-text">community.</span></h3><p>Use a display name. Don't post private information.</p></div><span class="chat-live"><i></i> WEBSITE CHAT</span></div>
+        <div id="chatMessages" class="chat-messages" aria-live="polite"><p class="chat-empty">Loading messages…</p></div>
+        <form id="chatForm" class="chat-form"><input name="name" maxlength="24" required placeholder="Display name" aria-label="Display name"><input name="body" maxlength="500" required placeholder="Write a message…" aria-label="Message"><button class="btn btn-primary" type="submit">Send ↗</button></form>
+        <p id="chatStatus" class="chat-status" role="status">Messages are public and may be removed by moderators.</p>
+      </div>
     </section>
 
     <section class="section-wrap section" id="store">
