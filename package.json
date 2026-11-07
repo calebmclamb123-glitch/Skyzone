@@ -2,7 +2,7 @@
   "name": "skyzone-community-site",
   "version": "1.0.0",
   "private": true,
-  "description": "Gaming community website with digital store, Discord links, applications and Stripe checkout starter",
+  "description": "Skyzone community website with owner admin login, announcements, Discord links and digital store",
   "scripts": {
     "start": "node server/index.js",
     "dev": "node --watch server/index.js"
