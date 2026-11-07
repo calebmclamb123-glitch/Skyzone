@@ -3,6 +3,7 @@ const express = require("express");
 const path = require("path");
 const fs = require("fs");
 const crypto = require("crypto");
+const { OAuth2Client } = require("google-auth-library");
 
 const app = express();
 app.set("trust proxy", 1);
@@ -11,6 +12,7 @@ const DATA_DIR = path.join(__dirname, "data");
 const PRODUCTS_FILE = path.join(DATA_DIR, "products.json");
 const ORDERS_FILE = path.join(DATA_DIR, "orders.json");
 const ANNOUNCEMENTS_FILE = path.join(DATA_DIR, "announcements.json");
+const CHAT_FILE = path.join(DATA_DIR, "chat.json");
 fs.mkdirSync(DATA_DIR, { recursive: true });
 
 const starterProducts = [
@@ -28,16 +30,18 @@ function writeJson(file, data) { fs.writeFileSync(file, JSON.stringify(data, nul
 if (!fs.existsSync(PRODUCTS_FILE)) writeJson(PRODUCTS_FILE, starterProducts);
 if (!fs.existsSync(ORDERS_FILE)) writeJson(ORDERS_FILE, []);
 if (!fs.existsSync(ANNOUNCEMENTS_FILE)) writeJson(ANNOUNCEMENTS_FILE, starterAnnouncements);
+if (!fs.existsSync(CHAT_FILE)) writeJson(CHAT_FILE, []);
 
 const allowedEmails = (process.env.ADMIN_EMAILS || "calebmclamb123@gmail.com,calebmclamb19@gmail.com")
   .split(",").map(x => x.trim().toLowerCase()).filter(Boolean);
 const cookieName = "skyzone_admin";
 const sessionLifetime = 8 * 60 * 60 * 1000;
-const attempts = new Map();
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const loginAttempts = new Map();
+const chatAttempts = new Map();
 
 function secretReady() {
-  return Boolean(process.env.ADMIN_PASSWORD && process.env.SESSION_SECRET &&
-    process.env.ADMIN_PASSWORD.length >= 12 && process.env.SESSION_SECRET.length >= 32);
+  return Boolean(process.env.SESSION_SECRET && process.env.SESSION_SECRET.length >= 32);
 }
 function sign(value) {
   return crypto.createHmac("sha256", process.env.SESSION_SECRET).update(value).digest("base64url");
@@ -53,8 +57,7 @@ function createSession(email) {
 }
 function verifySession(req) {
   if (!secretReady()) return null;
-  const token = readCookie(req, cookieName);
-  const parts = token.split(".");
+  const parts = readCookie(req, cookieName).split(".");
   if (parts.length !== 2) return null;
   const expected = Buffer.from(sign(parts[0]));
   const actual = Buffer.from(parts[1]);
@@ -67,39 +70,48 @@ function verifySession(req) {
 }
 function requireAdmin(req, res, next) {
   const session = verifySession(req);
-  if (!session) return res.status(401).json({ error: "Please sign in with an authorized Skyzone owner account." });
+  if (!session) return res.status(401).json({ error: "Sign in with an authorized Google owner account first." });
   req.adminEmail = session.email;
   next();
+}
+function rateLimit(map, key, max, windowMs) {
+  const now = Date.now();
+  const recent = (map.get(key) || []).filter(t => now - t < windowMs);
+  if (recent.length >= max) return false;
+  recent.push(now); map.set(key, recent); return true;
 }
 
 app.use(express.json({ limit: "100kb" }));
 app.use(express.static(path.join(__dirname, "..", "public")));
 
 app.get("/api/config", (req, res) => {
-  res.json({ discordInviteUrl: process.env.DISCORD_INVITE_URL || "https://discord.gg/QVR7E9jgUN" });
+  res.json({
+    discordInviteUrl: process.env.DISCORD_INVITE_URL || "https://discord.gg/QVR7E9jgUN",
+    googleClientId: process.env.GOOGLE_CLIENT_ID || ""
+  });
 });
 app.get("/api/products", (req, res) => res.json(readJson(PRODUCTS_FILE, starterProducts).filter(p => p.active)));
 app.get("/api/announcements", (req, res) => res.json(readJson(ANNOUNCEMENTS_FILE, starterAnnouncements).filter(a => a.active)));
 
-app.post("/api/admin/login", (req, res) => {
-  if (!secretReady()) return res.status(503).json({ error: "Admin login is not configured yet. Add ADMIN_PASSWORD and SESSION_SECRET in Render Environment." });
+app.post("/api/admin/google", async (req, res) => {
+  if (!secretReady()) return res.status(503).json({ error: "Admin sign-in is not configured. Add SESSION_SECRET in Render Environment." });
+  if (!process.env.GOOGLE_CLIENT_ID) return res.status(503).json({ error: "Google sign-in is not configured yet. Add GOOGLE_CLIENT_ID in Render Environment." });
   const ip = req.ip || "unknown";
-  const now = Date.now();
-  const recent = (attempts.get(ip) || []).filter(t => now - t < 15 * 60 * 1000);
-  if (recent.length >= 8) return res.status(429).json({ error: "Too many login attempts. Please wait 15 minutes." });
-  const email = String(req.body.email || "").trim().toLowerCase();
-  const password = String(req.body.password || "");
-  const passwordOk = password.length === process.env.ADMIN_PASSWORD.length &&
-    crypto.timingSafeEqual(Buffer.from(password), Buffer.from(process.env.ADMIN_PASSWORD));
-  if (!allowedEmails.includes(email) || !passwordOk) {
-    recent.push(now); attempts.set(ip, recent);
-    return res.status(401).json({ error: "Email or password is incorrect." });
+  if (!rateLimit(loginAttempts, ip, 10, 15 * 60 * 1000)) return res.status(429).json({ error: "Too many sign-in attempts. Please wait 15 minutes." });
+  try {
+    const ticket = await googleClient.verifyIdToken({ idToken: String(req.body.credential || ""), audience: process.env.GOOGLE_CLIENT_ID });
+    const payload = ticket.getPayload();
+    const email = String(payload.email || "").toLowerCase();
+    if (!payload.email_verified || !allowedEmails.includes(email)) {
+      return res.status(403).json({ error: "This Google account is not on the Skyzone owner list." });
+    }
+    res.cookie(cookieName, createSession(email), {
+      httpOnly: true, secure: req.secure, sameSite: "lax", maxAge: sessionLifetime, path: "/"
+    });
+    res.json({ ok: true, email });
+  } catch {
+    res.status(401).json({ error: "Google sign-in could not be verified. Please try again." });
   }
-  attempts.delete(ip);
-  res.cookie(cookieName, createSession(email), {
-    httpOnly: true, secure: req.secure, sameSite: "lax", maxAge: sessionLifetime, path: "/"
-  });
-  res.json({ ok: true, email });
 });
 app.get("/api/admin/me", requireAdmin, (req, res) => res.json({ email: req.adminEmail }));
 app.post("/api/admin/logout", (req, res) => {
@@ -123,7 +135,7 @@ app.put("/api/admin/products", requireAdmin, (req, res) => {
 app.get("/api/admin/announcements", requireAdmin, (req, res) => res.json(readJson(ANNOUNCEMENTS_FILE, starterAnnouncements)));
 app.put("/api/admin/announcements", requireAdmin, (req, res) => {
   if (!Array.isArray(req.body.announcements)) return res.status(400).json({ error: "Expected announcements array." });
-  const cleaned = req.body.announcements.map((a, i) => ({
+  const cleaned = req.body.announcements.map(a => ({
     id: String(a.id || crypto.randomUUID()).slice(0, 80),
     title: String(a.title || "").slice(0, 120),
     body: String(a.body || "").slice(0, 2000),
@@ -134,6 +146,29 @@ app.put("/api/admin/announcements", requireAdmin, (req, res) => {
   res.json({ saved: true, count: cleaned.length });
 });
 app.get("/api/admin/orders", requireAdmin, (req, res) => res.json(readJson(ORDERS_FILE, [])));
+app.delete("/api/admin/chat/:id", requireAdmin, (req, res) => {
+  const messages = readJson(CHAT_FILE, []).filter(m => m.id !== req.params.id);
+  writeJson(CHAT_FILE, messages);
+  res.json({ deleted: true });
+});
+
+// Public website chat. Messages are text-only and limited to reduce spam.
+app.get("/api/chat", (req, res) => {
+  const messages = readJson(CHAT_FILE, []).slice(-100);
+  res.json(messages);
+});
+app.post("/api/chat", (req, res) => {
+  const ip = req.ip || "unknown";
+  if (!rateLimit(chatAttempts, ip, 5, 30 * 1000)) return res.status(429).json({ error: "Please wait a moment before sending another message." });
+  const name = String(req.body.name || "").trim().replace(/\s+/g, " ").slice(0, 24);
+  const body = String(req.body.body || "").trim().slice(0, 500);
+  if (!name || !body) return res.status(400).json({ error: "Enter a display name and message." });
+  const messages = readJson(CHAT_FILE, []);
+  const message = { id: crypto.randomUUID(), name, body, createdAt: new Date().toISOString() };
+  messages.push(message);
+  writeJson(CHAT_FILE, messages.slice(-500));
+  res.status(201).json(message);
+});
 
 // Checkout intentionally stays disabled until a secure hosted payment provider is connected.
 app.post("/api/checkout", (req, res) => {
