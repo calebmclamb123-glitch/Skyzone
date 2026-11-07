@@ -17,9 +17,10 @@ function renderMemberMessages(messages){
   const attachment=m.attachment?'<a class="chat-image-link" href="'+memberEsc(m.attachment)+'" target="_blank" rel="noopener"><img class="chat-image-attachment" src="'+memberEsc(m.attachment)+'" alt="Chat attachment"></a>':'';
   const reactions=Object.entries(m.reactions||{}).map(([emoji,ids])=>'<button class="chat-reaction '+(currentMember&&ids.includes(currentMember.id)?'selected':'')+'" data-reaction="'+emoji+'" data-id="'+m.id+'" type="button">'+emoji+' '+ids.length+'</button>').join("");
   const own=!!currentMember&&m.memberId===currentMember.id;
-  const actions=currentMember?'<div class="chat-message-actions"><button class="chat-message-reply" data-id="'+m.id+'" type="button">Reply</button>'+['👍','❤️','😂','🎉','👀'].map(e=>'<button class="chat-reaction-add" data-reaction="'+e+'" data-id="'+m.id+'" type="button" aria-label="React '+e+'">'+e+'</button>').join("")+(own?'<button class="chat-message-edit" data-id="'+m.id+'" type="button">Edit</button><button class="chat-message-delete" data-id="'+m.id+'" type="button">Delete</button>':'')+'</div>':'';
+  const actions=currentMember?'<div class="chat-message-actions"><button class="chat-message-reply" data-id="'+m.id+'" type="button">Reply</button>'+['👍','❤️','😂','🎉','👀'].map(e=>'<button class="chat-reaction-add" data-reaction="'+e+'" data-id="'+m.id+'" type="button" aria-label="React '+e+'">'+e+'</button>').join("")+(isOwner?'<button class="chat-message-pin" data-id="'+m.id+'" data-pinned="'+(m.pinned?'true':'false')+'" type="button">'+(m.pinned?'Unpin':'Pin')+'</button>':'')+(own?'<button class="chat-message-edit" data-id="'+m.id+'" type="button">Edit</button><button class="chat-message-delete" data-id="'+m.id+'" type="button">Delete</button>':'')+'</div>':'';
+  const pinMark=m.pinned?'<small class="chat-pinned-label">📌 Pinned message</small>':"";
   const reply=m.replyTo?'<small class="chat-reply-label">↳ Replying to a message</small>':'';
-  return '<article class="chat-message" data-message="'+m.id+'">'+avatar+'<div class="chat-message-content"><div class="chat-message-top"><strong>'+(m.role==="Owner"?'<span class="chat-owner-role">Owner</span> ':"")+memberEsc(m.name)+'</strong><time>'+time+(m.editedAt?' · edited':'')+'</time></div>'+reply+(m.body?'<p>'+renderChatMarkdown(m.body)+'</p>':'')+attachment+'<div class="chat-reactions">'+reactions+'</div>'+actions+'</div></article>';
+  return '<article class="chat-message" data-message="'+m.id+'">'+avatar+'<div class="chat-message-content"><div class="chat-message-top"><strong>'+(m.role==="Owner"?'<span class="chat-owner-role">Owner</span> ':"")+memberEsc(m.name)+'</strong><time>'+time+(m.editedAt?' · edited':'')+'</time></div>'+pinMark+reply+(m.body?'<p>'+renderChatMarkdown(m.body)+'</p>':'')+attachment+'<div class="chat-reactions">'+reactions+'</div>'+actions+'</div></article>';
  }).join("");
  messagesBox.scrollTop=messagesBox.scrollHeight;
 }
@@ -87,7 +88,9 @@ messagesBox.addEventListener("click",async e=>{
  const reaction=e.target.closest("[data-reaction][data-id]");
  const edit=e.target.closest(".chat-message-edit");
  const del=e.target.closest(".chat-message-delete");
+ const pin=e.target.closest(".chat-message-pin");
  try{
+  if(pin&&isOwner){const method=pin.dataset.pinned==="true"?"DELETE":"POST";await memberApi("/api/admin/chat/"+pin.dataset.id+"/pin",{method});await refreshMemberChat()}
   if(reaction){await memberApi("/api/chat/"+reaction.dataset.id+"/reactions",{method:"POST",body:JSON.stringify({emoji:reaction.dataset.reaction})});await refreshMemberChat()}
   if(e.target.closest(".chat-message-reply")){const id=e.target.closest(".chat-message-reply").dataset.id;replyingTo=id;const item=e.target.closest(".chat-message");const author=item.querySelector(".chat-message-top strong")?.textContent||"member";member$("#chatReplyStatus").hidden=false;member$("#chatReplyText").textContent="Replying to "+author;chatForm.elements.body.focus()}
   if(edit){const article=edit.closest(".chat-message");const current=article.querySelector(".chat-message-content p")?.textContent||"";const body=prompt("Edit your message",current);if(body===null)return;await memberApi("/api/chat/"+edit.dataset.id,{method:"PATCH",body:JSON.stringify({body})});await refreshMemberChat()}
@@ -125,3 +128,16 @@ async function refreshConnectionCards(){
   });
  }catch{}
 }
+
+const chatSearchInput=member$("#chatSearchInput"),chatSearchStatus=member$("#chatSearchStatus");
+member$("#chatSearchButton").addEventListener("click",async()=>{
+ const q=chatSearchInput.value.trim();
+ if(q.length<2){chatSearchStatus.hidden=false;chatSearchStatus.textContent="Enter at least 2 characters.";return}
+ try{
+  const found=await memberApi("/api/chat/search?channel="+encodeURIComponent(currentChannel)+"&q="+encodeURIComponent(q));
+  renderMemberMessages(found);chatSearchStatus.hidden=false;chatSearchStatus.textContent=found.length+" matching message(s) in #"+currentChannel+".";
+ }catch(e){chatSearchStatus.hidden=false;chatSearchStatus.textContent=e.message}
+});
+chatSearchInput.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();member$("#chatSearchButton").click()}});
+member$("#chatClearSearch").addEventListener("click",()=>{chatSearchInput.value="";chatSearchStatus.hidden=true;member$("#chatClearSearch").hidden=true;refreshMemberChat()});
+chatSearchInput.addEventListener("input",()=>{member$("#chatClearSearch").hidden=!chatSearchInput.value});
